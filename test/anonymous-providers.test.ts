@@ -72,7 +72,7 @@ test('wikipedia: request fields, edition from the task language, URL building, e
   assert.equal(out.sources.length, 3)
   assert.equal(new URL(calls[0]!.url).hostname, 'en.wikipedia.org')
   assert.equal(calls[0]!.headers['user-agent'], PROVIDER_USER_AGENT, 'a polite, descriptive User-Agent')
-  assert.match(PROVIDER_USER_AGENT, /dsh-web-search-pro\/.*github\.com\/anweat/)
+  assert.match(PROVIDER_USER_AGENT, /dsh-web-search-pro-max\/.*github\.com\/wxcvm/)
   assert.deepEqual(usage, [{ provider: 'wikipedia', protocol: 'search', requests: 1, note: 'tokens n/a, free tier' }], 'one request counted, tokens n/a')
 
   assert.throws(() => parseWikipedia({ query: { search: [] } }, 'en', 5), (e: any) => e.code === 'ENGINE_EMPTY' && e.retryable)

@@ -8,7 +8,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 import { before, test } from 'node:test'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse } from 'node-html-parser'
 import { WebSearchSettingsController } from '../src/client/form.ts'
 import { adoptionOf, formatTime, overlayCliDependencies, overlayKeyOfField } from '../src/client/overlay-ops.ts'
@@ -25,8 +25,8 @@ before(async () => {
   const fromTsdown = createRequire(require.resolve('tsdown/package.json'))
   const rolldown = await import(pathToFileURL(fromTsdown.resolve('rolldown')).href)
   const bundle = await rolldown.rolldown({
-    input: new URL('./ui/ssr-entry.tsx', import.meta.url).pathname, platform: 'node', logLevel: 'silent',
-    resolve: { alias: { '@deepseek-ai/dsh-client-ui-primitives': new URL('./ui/primitives-stub.ts', import.meta.url).pathname } },
+    input: fileURLToPath(new URL('./ui/ssr-entry.tsx', import.meta.url)), platform: 'node', logLevel: 'silent',
+    resolve: { alias: { '@deepseek-ai/dsh-client-ui-primitives': fileURLToPath(new URL('./ui/primitives-stub.ts', import.meta.url)) } },
     transform: { define: { 'process.env.NODE_ENV': '"development"' }, jsx: { runtime: 'automatic' } },
   } as never)
   const { output } = await bundle.generate({ format: 'esm' })
