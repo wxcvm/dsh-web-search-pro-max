@@ -103,7 +103,7 @@ export const zh = {
   // route
   registerProvider: '注册为 ctx.web provider', registerProviderHint: '让内置 web_search / web_fetch 可经本插件。', registerProviderHelp: '启动时生效。注册只是“可选”：宿主只在 web 条目写明 id 或它是唯一可用 provider 时才用它，还需要下面的 profile patch。',
   providerId: 'Provider ID', providerIdHint: '被 web 条目或环境变量引用的稳定 id。',
-  providerEvidence: '内置 web_search 返回', providerEvidenceHint: 'auto：证据包；off：只返回来源列表。', optAuto: 'auto · 证据包（默认）', optOff: 'off · 来源列表',
+  providerEvidence: '内置 web_search 搜索模式', providerEvidenceHint: 'fast 顺序回退；smart 并行融合；research 提取证据。auto/off 保留旧行为。', optAuto: 'auto · 证据包（默认）', optOff: 'off · 来源列表', optFast: 'Fast · 极速搜索', optSmart: 'Smart · 智能融合', optResearch: 'Research · 深度研究',
   providerDeadlineMs: '证据运行期限', providerDeadlineMsHint: '到点返回已有结果，至少 100。',
   routeOffNote: '未注册：内置 web_search / web_fetch 不经过本插件。', routeHelpTitle: '选中本插件还需要 profile patch', routeHelpFoldHint: '写进 cordis.patch.yml',
   routeHelpIntro: '在 $DSH_HOME/profiles/<profile>/cordis.patch.yml 中写：',
@@ -437,7 +437,7 @@ export const en = {
   jsonEntries: '{n} entries', jsonDialogTitle: 'Edit: {name}', jsonDialogHint: 'A JSON object; validated with the server\'s own rules.',
   registerProvider: 'Register as the ctx.web provider', registerProviderHint: 'Lets built-in web_search / web_fetch route here.', registerProviderHelp: 'Takes effect at start-up. Registering only makes it selectable: the host uses a provider only when the web entry names its id or it is the only usable one, which needs the profile patch below.',
   providerId: 'Provider id', providerIdHint: 'The stable id the web entry or environment names.',
-  providerEvidence: 'Built-in web_search returns', providerEvidenceHint: 'auto: an evidence pack; off: the source list.', optAuto: 'auto · evidence pack (default)', optOff: 'off · source list',
+  providerEvidence: 'Built-in web_search mode', providerEvidenceHint: 'Fast: ordered fallback; Smart: parallel fusion; Research: evidence. Auto/off retain legacy behavior.', optAuto: 'auto · evidence pack (default)', optOff: 'off · source list', optFast: 'Fast · ordered search', optSmart: 'Smart · parallel fusion', optResearch: 'Research · evidence pack',
   providerDeadlineMs: 'Evidence deadline', providerDeadlineMsHint: 'Partial result at the deadline, at least 100.',
   routeOffNote: 'Not registered: built-in web_search / web_fetch do not go through this plugin.', routeHelpTitle: 'Selecting this plugin also needs a profile patch', routeHelpFoldHint: 'goes into cordis.patch.yml',
   routeHelpIntro: 'Write this in $DSH_HOME/profiles/<profile>/cordis.patch.yml:',

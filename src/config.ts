@@ -94,10 +94,10 @@ export interface EvidenceConfig {
 /**
  * Settings of the ctx.web provider route (dev-plan M8c): what the Host's built-in `web_search` returns when this plugin is the selected provider.
  * `evidence: 'auto'` runs the evidence pipeline for every provider search and returns the pack as `content` (plain sources when it fails);
- * `off` keeps the plain source list.
+ * `off` retains the plain source list; `fast` selects ordered fallback, `smart` parallel fusion, `research` the evidence pipeline.
  */
 export interface ProviderSettings {
-  evidence: 'auto' | 'off'
+  evidence: typeof PROVIDER_EVIDENCE_MODES[number]
   /** Deadline of the evidence run inside one provider search, in ms (the pipeline returns a partial pack when it is reached). */
   deadlineMs: number
 }

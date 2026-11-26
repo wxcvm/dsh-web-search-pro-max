@@ -14,4 +14,4 @@ Release gates: package build, typecheck, existing tests, benchmark tests, instal
 
 ## Search modes (initial implementation)
 
-`search.run` accepts optional `mode`: `fast` uses the existing ordered fallback; `smart` uses bounded parallel fusion; `research` invokes the evidence pipeline even without a task or profile. No mode preserves the existing behavior. Mode selection in the native host provider and settings, adaptive budgets, and early return remain future work. These modes are not latency guarantees.
+`search.run` accepts optional `mode`: `fast` uses the existing ordered fallback; `smart` uses bounded parallel fusion; `research` invokes the evidence pipeline even without a task or profile. No mode preserves the existing behavior. Native host settings expose explicit fast/smart/research modes while preserving auto/off. Adaptive budgets and early return remain future work. These modes are not latency guarantees.

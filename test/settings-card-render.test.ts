@@ -156,7 +156,7 @@ test('the groups hold the fields the milestone names, and enum options are the s
   for (const field of ['rrfConstant', 'freshnessBoost', 'freshnessDays', 'authorityBoost', 'authorityDomains']) assert.ok(within('ranking', field), field)
   const options = (id: string) => root.querySelectorAll(`select[id="web-search-pro-${id}"] option`).map(option => option.getAttribute('value'))
   assert.deepEqual(options('toolSurface'), ['indexed', 'flat'])
-  assert.deepEqual(options('provider.evidence'), ['auto', 'off'])
+  assert.deepEqual(options('provider.evidence'), ['auto', 'off', 'fast', 'smart', 'research'])
   assert.deepEqual(options('evidence.judge.mode'), ['off', 'shadow', 'control', 'hybrid'])
   assert.deepEqual(options('evidence.coverage.mode'), ['off', 'shadow', 'control'])
   assert.deepEqual(options('evidence.sourcePolicy'), ['default', 'anonymous-only'])

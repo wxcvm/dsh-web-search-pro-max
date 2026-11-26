@@ -61,7 +61,7 @@ export function RouteGroup({ card }: { card: Card }) {
     <SwitchRow card={card} field="registerProvider" />
     {on ? <>
       <TextRow card={card} field="providerId" code />
-      <SelectRow card={card} field="provider.evidence" options={[{ value: 'auto', label: t('optAuto') }, { value: 'off', label: t('optOff') }]} />
+      <SelectRow card={card} field="provider.evidence" options={[{ value: 'auto', label: t('optAuto') }, { value: 'off', label: t('optOff') }, { value: 'fast', label: t('optFast') }, { value: 'smart', label: t('optSmart') }, { value: 'research', label: t('optResearch') }]} />
       <NumberRow card={card} field="provider.deadlineMs" unit="ms" />
     </> : <p className={css.rowHint}>{t('routeOffNote')}</p>}
     <Fold id="route-patch" title={t('routeHelpTitle')} hint={t('routeHelpFoldHint')}>

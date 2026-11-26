@@ -74,9 +74,9 @@ test('task-set selection: v1 default paths are unchanged, v2 maps to its own fil
   assert.throws(() => parseTaskSet('v3'), /--task-set/)
   assert.throws(() => parseTaskSet(true), /--task-set/)
   const p1 = taskSetPaths()
-  assert.ok(p1.tasksFile.endsWith('tasks/tasks.v1.jsonl') && p1.candidatesDir.endsWith('data/candidates.v1') && p1.labelsDir.endsWith('data/labels.v1'))
+  assert.ok(p1.tasksFile.replace(/\\/g, '/').endsWith('tasks/tasks.v1.jsonl') && p1.candidatesDir.replace(/\\/g, '/').endsWith('data/candidates.v1') && p1.labelsDir.replace(/\\/g, '/').endsWith('data/labels.v1'))
   const p2 = taskSetPaths('v2')
-  assert.ok(p2.tasksFile.endsWith('tasks/tasks.v2.jsonl') && p2.candidatesDir.endsWith('data/candidates.v2') && p2.labelsDir.endsWith('data/labels.v2'))
+  assert.ok(p2.tasksFile.replace(/\\/g, '/').endsWith('tasks/tasks.v2.jsonl') && p2.candidatesDir.replace(/\\/g, '/').endsWith('data/candidates.v2') && p2.labelsDir.replace(/\\/g, '/').endsWith('data/labels.v2'))
   assert.deepEqual(loadTaskSet('v1'), tasks)
 })
 
