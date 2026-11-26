@@ -568,3 +568,26 @@ test('router: searxng exists only with searxngUrl (config -> deps -> engine), co
     fs.rmSync(dir, { recursive: true, force: true })
   }
 })
+
+
+test('Pro Max npm and Crossref public search adapters map official response shapes', async () => {
+  const { npmRegistryAdapter, crossrefAdapter } = await import('../src/providers/pro-max-vertical.ts')
+  const npm = harness(deps => npmRegistryAdapter.create(deps, resolveConfig({} as never)), () => reply(200, { objects: [{ package: { name: '@scope/example', version: '1.2.3', description: 'Example', date: '2026-01-02T00:00:00Z' } }, { package: { name: '' } }] }))
+  const n = await npm.engine.search('typescript async', 3)
+  assert.equal(n.sources[0]?.url, 'https://www.npmjs.com/package/@scope/example')
+  assert.match(n.sources[0]?.snippet ?? '', /1.2.3/)
+  assert.equal(new URL(npm.calls[0]!.url).searchParams.get('text'), 'typescript async')
+  assert.equal(npm.calls[0]!.headers.authorization, undefined)
+  const crossref = harness(deps => crossrefAdapter.create(deps, resolveConfig({} as never)), () => reply(200, { message: { items: [{ DOI: '10.1000/example', title: ['A study'], 'container-title': ['Journal'], published: { 'date-parts': [[2025, 3, 2]] } }] } }))
+  const cr = await crossref.engine.search('example paper', 2)
+  assert.equal(cr.sources[0]?.url, 'https://doi.org/10.1000/example')
+  assert.equal(cr.sources[0]?.publishedAt, '2025-03-02')
+  assert.equal(new URL(crossref.calls[0]!.url).searchParams.get('query.bibliographic'), 'example paper')
+  assert.equal(crossref.calls[0]!.headers.authorization, undefined)
+  for (const adapter of [npmRegistryAdapter, crossrefAdapter]) {
+    const empty = harness(deps => adapter.create(deps, resolveConfig({} as never)), () => reply(200, adapter.descriptor.aliases[0] === 'npm' ? { objects: [] } : { message: { items: [] } }))
+    assert.equal((await fails(empty.engine.search('nothing', 2))).code, 'ENGINE_EMPTY')
+    const limited = harness(deps => adapter.create(deps, resolveConfig({} as never)), () => reply(429, {}))
+    assert.equal((await fails(limited.engine.search('q', 2))).code, 'ENGINE_RATE_LIMIT')
+  }
+})

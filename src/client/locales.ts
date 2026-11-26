@@ -70,7 +70,7 @@ export const zh = {
   reqDaily: '每日上限', reqDailyHint: '每个自然日最多次数；留空 = 不限。', reqDailyHelp: '日界线取评分用量上限里的时区。已用 / 剩余见 web_call sources.status。',
   anonymousTitle: '匿名来源（无需 Key）', anonymousHint: '参考表，不代表此刻可用', anonymousName: '来源', anonymousUse: '用途', sourcesStatusLine: '各来源的实时就绪状态（安装、Key、最近一次成功）由 web_call sources.status 显示。',
   srcUseDdg: '通用网页，默认首选', srcUseBing: '通用网页，与 DuckDuckGo 互补', srcUseWikipedia: '百科事实，中英文', srcUseHackernews: '英文技术讨论与经验', srcUseStackexchange: '编程问答（Stack Overflow）',
-  srcUseOpenalex: '学术论文索引', srcUseSemanticscholar: '学术论文；匿名额度常被占满', srcUseAnysearch: '匿名通用搜索，额度有限', srcUseArxiv: '预印本论文', srcUsePubmed: '生物医学文献', srcUseV2ex: '中文社区讨论',
+  srcUseOpenalex: '学术论文索引', srcUseSemanticscholar: '学术论文；匿名额度常被占满', srcUseAnysearch: '匿名通用搜索，额度有限', srcUseArxiv: '预印本论文', srcUsePubmed: '生物医学文献', srcUseV2ex: '中文社区讨论', srcUseNpm: 'JavaScript 与 TypeScript 软件包', srcUseCrossref: 'DOI 与学术出版物元数据',
   // reading
   fetchDefaultChars: '页面读取默认字数', fetchDefaultCharsHint: 'read.fetch 单次上限，1000–500000。',
   exaContentsPerUrlChars: 'Exa 正文单 URL 上限', exaContentsPerUrlCharsHint: 'read.contents 每个 URL，至少 500。',
@@ -407,7 +407,7 @@ export const en = {
   reqDaily: 'Daily cap', reqDailyHint: 'Most requests per day; blank = no cap.', reqDailyHelp: 'The day boundary follows the scoring budget time zone. Used / remaining is in web_call sources.status.',
   anonymousTitle: 'Anonymous sources (no key)', anonymousHint: 'reference only, not live state', anonymousName: 'Source', anonymousUse: 'Use', sourcesStatusLine: 'Live readiness of each source (installation, key, last success) is shown by web_call sources.status.',
   srcUseDdg: 'General web, the default first choice', srcUseBing: 'General web, complements DuckDuckGo', srcUseWikipedia: 'Encyclopedic facts, zh / en', srcUseHackernews: 'English tech discussion and experience', srcUseStackexchange: 'Programming Q&A (Stack Overflow)',
-  srcUseOpenalex: 'Scholarly paper index', srcUseSemanticscholar: 'Papers; the anonymous pool is often full', srcUseAnysearch: 'Anonymous general search, limited allowance', srcUseArxiv: 'Preprints', srcUsePubmed: 'Biomedical literature', srcUseV2ex: 'Chinese community discussion',
+  srcUseOpenalex: 'Scholarly paper index', srcUseSemanticscholar: 'Papers; the anonymous pool is often full', srcUseAnysearch: 'Anonymous general search, limited allowance', srcUseArxiv: 'Preprints', srcUsePubmed: 'Biomedical literature', srcUseV2ex: 'Chinese community discussion', srcUseNpm: 'JavaScript and TypeScript packages', srcUseCrossref: 'DOI and scholarly publication metadata',
   fetchDefaultChars: 'Page read length', fetchDefaultCharsHint: 'read.fetch per call, 1000-500000.',
   exaContentsPerUrlChars: 'Exa contents per URL', exaContentsPerUrlCharsHint: 'read.contents per URL, at least 500.',
   exaContentsTotalChars: 'Exa contents total', exaContentsTotalCharsHint: 'read.contents per call, at least 1000.',

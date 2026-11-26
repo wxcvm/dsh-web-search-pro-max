@@ -27,6 +27,8 @@ export const ANONYMOUS_SOURCES: readonly AnonymousSource[] = [
   { id: 'arxiv', name: 'arXiv', use: 'srcUseArxiv' },
   { id: 'pubmed', name: 'PubMed', use: 'srcUsePubmed' },
   { id: 'v2ex', name: 'V2EX', use: 'srcUseV2ex' },
+  { id: 'npm', name: 'npm Registry', use: 'srcUseNpm' },
+  { id: 'crossref', name: 'Crossref', use: 'srcUseCrossref' },
 ]
 
 /** Display names of the keyed sources by route id (proper names, shown the same in every language). */

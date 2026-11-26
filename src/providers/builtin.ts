@@ -27,6 +27,7 @@ import { metasoAdapter } from './metaso.ts'
 import { zhipuAdapter } from './zhipu.ts'
 import { baiduAdapter } from './baidu-qianfan.ts'
 import { deepseekAdapter } from './deepseek.ts'
+import { npmRegistryAdapter, crossrefAdapter } from './pro-max-vertical.ts'
 import { descriptor } from './descriptor.ts'
 import { ProviderRegistry, type ProbeEnv, type ProviderAdapter, type ProviderDescriptor, type Readiness, type Requirement } from './registry.ts'
 
@@ -131,6 +132,8 @@ export function builtinAdapters(): ProviderAdapter[] {
     metasoAdapter,
     zhipuAdapter,
     baiduAdapter,
+    npmRegistryAdapter,
+    crossrefAdapter,
   ]
 }
 
