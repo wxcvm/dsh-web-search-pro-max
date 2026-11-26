@@ -1,3 +1,5 @@
+> **Web Search Pro Max (development preview)** is an independent MIT fork of [anweat/dsh-web-search-pro](https://github.com/anweat/dsh-web-search-pro). Package `dsh-web-search-pro-max`; config and default provider ID `web-search-pro-max`. Not published to npm yet. Automatic search defaults to `anonymous-only`; explicitly selected sources may still incur charges. Do not enable both forks together: tool names are shared. The upstream documentation below is retained for reference.
+
 # dsh-web-search-pro
 
 English | [中文](./README.md)

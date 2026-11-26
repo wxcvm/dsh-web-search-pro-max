@@ -1,3 +1,5 @@
+> **Web Search Pro Max（开发预览）**：本仓库是 [anweat/dsh-web-search-pro](https://github.com/anweat/dsh-web-search-pro) 的独立 MIT fork。包名 `dsh-web-search-pro-max`，配置 ID / 默认 Provider ID `web-search-pro-max`。尚未发布 npm 版本。默认 `anonymous-only`，自动搜索排除需 Key 或费用不明确的来源；明确指定来源仍可能产生费用。不要与上游同时启用，工具名称仍共用。下方为上游参考文档，安装指令不代表 Max 已发布。
+
 # dsh-web-search-pro
 
 [English](./README.en.md) | 中文

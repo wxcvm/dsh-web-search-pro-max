@@ -343,12 +343,25 @@ export class SearchRouter {
   private async preferred(ids: string[]): Promise<string[]> {
     const cfg = this.dynamic()
     const src = cfg.sources
+    const anonymousOnly = cfg.evidence?.sourcePolicy === 'anonymous-only'
+    const disabled = this.canonicalIds(src?.disabled ?? [])
+    if (anonymousOnly) {
+      const env = await this.probeEnv()
+      for (const id of ids) {
+        const adapter = this.registry.resolve(id)
+        if (!adapter) { disabled.push(id); continue }
+        try {
+          const readiness = await adapter.probeLocal(env)
+          if ((readiness.costTier ?? costTierOf(adapter.descriptor)) !== 'anonymous') disabled.push(id)
+        } catch { disabled.push(id) }
+      }
+    }
     return effectiveChain({
       engines: ids,
       priority: this.canonicalIds(src?.priority ?? []),
-      disabled: this.canonicalIds(src?.disabled ?? []),
-      anonymousOnly: cfg.evidence?.sourcePolicy === 'anonymous-only',
-      commonReady: await this.commonReady(),
+      disabled,
+      anonymousOnly,
+      commonReady: anonymousOnly ? [] : await this.commonReady(),
     })
   }
 

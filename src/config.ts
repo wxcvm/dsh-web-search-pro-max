@@ -62,7 +62,7 @@ export interface EvidenceConfig {
   /**
    * Which sources the automatic plan may use (dev-plan M11a). `default`: sources the user configured (a key) are promoted for
    * their language and profile, otherwise the anonymous / free ones lead. `anonymous-only`: never a source that needs a key,
-   * account or login, even a configured one. Explicit `engines` / `platform` in a call always win.
+   * account or login, even a configured one. Explicit `engines` / `platform` in a call always win; these may incur charges.
    */
   sourcePolicy: SourcePolicy
   /** Retrieval rounds per task (S8 bounded re-search): 1 disables the second round. Default 2. */
