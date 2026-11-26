@@ -702,10 +702,18 @@ export class SearchRouter {
   }
 
   /** Whether any configured engine is currently usable. */
-  anyEngineAvailable(): boolean {
+  anyEngineAvailable(skipSeam = false): boolean {
     this.syncBackends()
-    const ids = this.canonicalIds(this.dynamic().engines)
-    return ids.some(id => { try { return this.buildSync(id, false).available() } catch { return false } })
+    const cfg = this.dynamic()
+    const disabled = new Set(this.canonicalIds(cfg.sources?.disabled ?? []))
+    const ids = this.canonicalIds(cfg.engines)
+    return ids.some(id => {
+      if (disabled.has(id) || (skipSeam && id === 'seam')) return false
+      const adapter = this.registry.resolve(id)
+      if (!adapter) return false
+      if (cfg.evidence?.sourcePolicy === 'anonymous-only' && costTierOf(adapter.descriptor) !== 'anonymous') return false
+      try { return this.buildSync(id, skipSeam).available() } catch { return false }
+    })
   }
 
   private async build(id: string, skipSeam: boolean, usage?: UsageRecorder): Promise<Engine> {

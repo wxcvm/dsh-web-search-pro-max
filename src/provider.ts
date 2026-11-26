@@ -65,7 +65,7 @@ function packResult(out: EvidenceOutput, surface: ToolSurface): WebSearchResult 
 export function createSearchProvider(deps: SearchProviderDeps): WebSearchProvider {
   return {
     id: deps.id(),
-    available: () => deps.router.anyEngineAvailable(),
+    available: () => deps.router.anyEngineAvailable(true),
     async search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult> {
       const cfg = deps.dynamic()
       if (cfg.provider.evidence === 'off') return deps.router.searchAsProvider(request, signal)

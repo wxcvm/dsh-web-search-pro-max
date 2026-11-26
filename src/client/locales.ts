@@ -44,7 +44,7 @@ export const zh = {
   deepseekFetch: '用 DeepSeek Fetch 读取网页', deepseekFetchHint: '默认关闭；按请求计费。', deepseekFetchHelp: '开启后 read.fetch 在 Jina、直连都没拿到正文时，改用 DeepSeek Fetch API（每 1000 次成功请求 $0.75，空结果与失败不计费），之后才轮到浏览器渲染；也可显式用 mode=deepseek。与 DeepSeek 搜索共用同一个 Key。',
   // sources
   strategyGroup: '来源策略', strategyNote: '顺序：调用里的 engines / platform 最优先 → 下面的“优先来源” → 你配置了 Key 的来源（“常用”的 DeepSeek 排最前）→ 匿名 / 免费默认。付费来源只在配置了 Key 才会用到。',
-  sourcePolicy: '来源策略', sourcePolicyHint: '是否允许自动规划用需要 Key 的来源。', sourcePolicyHelp: 'default：按上述顺序。anonymous-only：即使配置了 Key，自动规划也绝不使用需要 Key、账号或登录的来源（调用里明确指定的仍可用）。',
+  sourcePolicy: '来源策略', sourcePolicyHint: '自动搜索与证据规划的费用策略。', sourcePolicyHelp: 'default：按上述顺序。anonymous-only：即使配置了 Key，自动路由会排除需要 Key、账号或登录及费用不明的来源（调用里明确指定的仍可用，可能产生费用）。',
   optPolicyDefault: 'default · 按顺序', optPolicyAnonymousOnly: 'anonymous-only · 只用匿名来源（默认）',
   srcPriority: '优先来源', srcPriorityHint: '按顺序排最前的来源 id。', srcPriorityHelp: '仅限就绪且适合任务语言与 profile 的来源；例：deepseek, exa。留空 = 不指定。调用里的 engines 仍最优先。',
   srcDisabled: '停用来源', srcDisabledHint: '自动规划与默认引擎链都不再用它们。', srcDisabledHelp: '调用里明确指定的来源仍可用。想关掉按量计费的 DeepSeek 默认，就在这里写 deepseek。',
@@ -381,7 +381,7 @@ export const en = {
   allowProxyFakeIp: 'Allow proxy fake-IP DNS', allowProxyFakeIpHint: 'Turn on when searches fail with "fake-IP" under Clash / TUN.', allowProxyFakeIpHelp: 'With a proxy such as Clash / TUN, if a search fails with "blocked / private address" and the host resolves to 198.18.x.x, turn this on. Only the fake-IP ranges (198.18/15, fdfe:dcba:9876::/64, 2001:2::/48) are trusted; literal IPs, localhost and other private addresses stay blocked.',
   deepseekFetch: 'Read pages with DeepSeek Fetch', deepseekFetchHint: 'Off by default; billed per request.', deepseekFetchHelp: 'When on, read.fetch falls back to the DeepSeek Fetch API (billed $0.75 per 1,000 successful requests; empty results and failures are free) when Jina and a direct request found no content, before browser rendering; mode=deepseek asks for it explicitly. It uses the same key as DeepSeek Search.',
   strategyGroup: 'Ranking policy', strategyNote: 'Order: engines / platform in the call, then "Priority sources" below, then sources you configured a key for (DeepSeek, the common one, first), then the anonymous / free defaults. A paid source is used only once its key is configured.',
-  sourcePolicy: 'Source policy', sourcePolicyHint: 'Whether automatic planning may use keyed sources.', sourcePolicyHelp: 'default follows the order above. anonymous-only: automatic planning never uses a source that needs a key, account or login, even a configured one (a source named in the call still runs).',
+  sourcePolicy: 'Source policy', sourcePolicyHint: 'Cost policy for automatic search and evidence planning.', sourcePolicyHelp: 'default follows the order above. anonymous-only: automatic routing excludes keyed, account-based and unknown-cost sources (explicit calls can still incur fees).',
   optPolicyDefault: 'default · in order', optPolicyAnonymousOnly: 'anonymous-only · anonymous sources only (default)',
   srcPriority: 'Priority sources', srcPriorityHint: 'Source ids ranked first, in this order.', srcPriorityHelp: 'Only ready sources that fit the task language and profile; for example deepseek, exa. Empty = none. engines in the call still wins.',
   srcDisabled: 'Disabled sources', srcDisabledHint: 'Never used by planning or the default chain.', srcDisabledHelp: 'A source named in the call still runs. To opt out of the billed DeepSeek default, put deepseek here.',

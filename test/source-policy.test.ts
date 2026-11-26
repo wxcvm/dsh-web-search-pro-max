@@ -218,7 +218,7 @@ test('the configured engines list honours sources.disabled and sources.priority;
 })
 
 
-test('anonymous automatic routing excludes paid and unknown-cost providers, even with a configured key', async () => {
+test('anonymous automatic routing excludes paid providers unless explicitly requested', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wsp-pro-max-cost-'))
   const config = resolveConfig({ dbPath: path.join(dir, 'store.db'), engines: ['paid', 'free'], enableCliBackends: false } as never)
   const registry = createBuiltinRegistry()

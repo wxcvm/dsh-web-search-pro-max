@@ -131,7 +131,7 @@ test('the order a search would use: DeepSeek leads, disabled leaves, only-free k
   const none = await page('en', { engines: ['ddg'], sources: { disabled: ['ddg'] } })
   assert.match(why(none.root), /Every engine is disabled/)
   // A draft edit shows at once: the preview reads the staged text.
-  const staged = await page('zh', { engines: defaults }, { DEEPSEEK_API_KEY: 'x' }, undefined, controller => controller.edit('engines', 'bing, ddg'))
+  const staged = await page('zh', { engines: defaults, evidence: { sourcePolicy: 'default' } }, { DEEPSEEK_API_KEY: 'x' }, undefined, controller => controller.edit('engines', 'bing, ddg'))
   assert.deepEqual(chain(staged.root), ['bing', 'ddg'])
   assert.match(why(staged.root), /这是你自己写的顺序，deepseek 不会自动加入/)
 })
