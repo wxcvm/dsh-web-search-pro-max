@@ -3,7 +3,7 @@
 # Modeled on the official deepseek-harness release.yml pattern:
 #   - pack runs WITHOUT registry credentials on every run — it builds, verifies
 #     the tag/version match, and uploads the exact tarball bytes;
-#   - publish is explicit: a manual dispatch from a v* tag with
+#   - publish is explicit: a manual dispatch from master or a v* tag with
 #     publish=true. It consumes the packed bytes (never a rebuild) and is the
 #     only step that can write to the npm registry;
 #   - publish runs are serialized so two versions cannot race dist-tags.
@@ -25,14 +25,23 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Publish to npm (must run from a v* tag). Leave unchecked for a dry-run pack.'
+        description: 'Publish to npm from master or a matching v* tag.'
         required: true
         type: boolean
         default: false
+      channel:
+        description: 'npm channel: latest for normal installs; next for opt-in previews; auto by version.'
+        type: choice
+        options: [latest, next, auto]
+        default: latest
+      auth:
+        description: 'First publish: bootstrap-token (repository NPM_TOKEN secret); later: trusted.'
+        type: choice
+        options: [trusted, bootstrap-token]
+        default: trusted
 
 permissions:
-  contents: write        # create the GitHub Release
-  id-token: write        # npm provenance (sigstore OIDC)
+  contents: read
 
 concurrency:
   # Pack runs per ref; publish is globally serialized (shared dist-tag state).
@@ -68,6 +77,8 @@ jobs:
 
       - name: Verify release version
         id: version
+        env:
+          REQUESTED_CHANNEL: ${{ inputs.channel || 'auto' }}
         run: |
           pkg_version=$(node -p "require('./package.json').version")
           echo "package.json version: $pkg_version"
@@ -83,6 +94,9 @@ jobs:
             dist_tag=next
           else
             dist_tag=latest
+          fi
+          if [[ "$REQUESTED_CHANNEL" == latest || "$REQUESTED_CHANNEL" == next ]]; then
+            dist_tag="$REQUESTED_CHANNEL"
           fi
           echo "npm dist-tag: $dist_tag"
           echo "dist_tag=$dist_tag" >> "$GITHUB_OUTPUT"
@@ -109,7 +123,7 @@ jobs:
 
   publish:
     name: Publish to npm
-    if: github.event_name == 'workflow_dispatch' && inputs.publish && startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'workflow_dispatch' && inputs.publish && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
     needs: pack
     runs-on: ubuntu-24.04
     environment: npm-publish
@@ -124,6 +138,7 @@ jobs:
         with:
           node-version: ${{ env.PRIMARY_NODE_VERSION }}
           registry-url: https://registry.npmjs.org
+          package-manager-cache: false
 
       - name: Install npm with trusted publishing support
         run: npm install --global npm@^11.5.1
@@ -133,8 +148,20 @@ jobs:
           name: npm-tarball
           path: dist
 
-      - name: Publish tarball
+      - name: Publish with trusted publishing
+        if: inputs.auth == 'trusted'
         run: npm publish ./dist/*.tgz --provenance --access public --tag "${{ needs.pack.outputs.dist_tag }}"
+
+      - name: First publish using bootstrap token
+        if: inputs.auth == 'bootstrap-token'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [[ -z "$NODE_AUTH_TOKEN" ]]; then
+            echo "::error::NPM_TOKEN is not configured. Add a scoped granular publish token in repository Actions secrets."
+            exit 1
+          fi
+          npm publish ./dist/*.tgz --provenance --access public --tag "${{ needs.pack.outputs.dist_tag }}"
 
   release:
     name: GitHub Release with tarball

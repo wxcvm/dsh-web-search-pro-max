@@ -1,4 +1,4 @@
-> **Web Search Pro Max（开发预览）**：本仓库是 [anweat/dsh-web-search-pro](https://github.com/anweat/dsh-web-search-pro) 的独立 MIT fork。包名 `dsh-web-search-pro-max`，配置 ID / 默认 Provider ID `web-search-pro-max`。尚未发布 npm 版本。默认 `anonymous-only`，自动搜索排除需 Key 或费用不明确的来源；明确指定来源仍可能产生费用。不要与上游同时启用，工具名称仍共用。下方为上游参考文档，安装指令不代表 Max 已发布。
+> **Web Search Pro Max（开发预览）**：本仓库是 [anweat/dsh-web-search-pro](https://github.com/anweat/dsh-web-search-pro) 的独立 MIT fork。包名 `dsh-web-search-pro-max`，配置 ID / 默认 Provider ID `web-search-pro-max`。npm 首次发布需由维护者授权。发布到 latest 后，在 Harness 插件管理输入 `dsh-web-search-pro-max` 安装与更新；也可使用 `dsh plugin --profile web add dsh-web-search-pro-max@latest`。维护者可在 Actions 的 Publish to npm 工作流选择 master、publish=true、channel=latest；首次发布使用 bootstrap-token（NPM_TOKEN），以后使用 trusted。默认 `anonymous-only`，自动搜索排除需 Key 或费用不明确的来源；明确指定来源仍可能产生费用。不要与上游同时启用，工具名称仍共用。下方为上游参考文档，安装指令不代表 Max 已发布。
 
 # dsh-web-search-pro
 
