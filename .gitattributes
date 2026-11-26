@@ -1,0 +1,2 @@
+# Keep source and Markdown fixtures identical across CI platforms.
+* text=auto eol=lf

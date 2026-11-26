@@ -6,5 +6,5 @@
 # @anweat/dsh-browser is declared as a peerDependency: it provides the browser
 # service that this plugin injects (inject: ['browser']).
 - insert:
-    - id: web-search-pro
-      name: dsh-web-search-pro
+    - id: web-search-pro-max
+      name: dsh-web-search-pro-max

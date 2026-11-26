@@ -58,17 +58,17 @@ function packResult(out: EvidenceOutput, surface: ToolSurface): WebSearchResult 
 }
 
 /**
- * Search provider: evidence pack when `provider.evidence` is `auto`, the plain router search otherwise.
+ * Search provider: evidence pack in auto/research; plain sources in off/fast/smart.
  * The evidence run has its own deadline and never fails the built-in tool: any failure returns today's plain sources.
  * Only the caller's own cancellation is rethrown.
  */
 export function createSearchProvider(deps: SearchProviderDeps): WebSearchProvider {
   return {
     id: deps.id(),
-    available: () => deps.router.anyEngineAvailable(),
+    available: () => deps.router.anyEngineAvailable(true),
     async search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult> {
       const cfg = deps.dynamic()
-      if (cfg.provider.evidence === 'off') return deps.router.searchAsProvider(request, signal)
+      if (cfg.provider.evidence === 'off' || cfg.provider.evidence === 'fast' || cfg.provider.evidence === 'smart') return deps.router.searchAsProvider(request, signal)
       const guard = new AbortController()
       const stage = signal ? AbortSignal.any([signal, guard.signal]) : guard.signal
       const deadlineMs = cfg.provider.deadlineMs

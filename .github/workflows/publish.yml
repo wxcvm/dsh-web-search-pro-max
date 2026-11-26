@@ -1,16 +1,16 @@
-# Publish to npm (and attach tarball to a GitHub Release) for dsh-web-search-pro.
+# Publish and release for dsh-web-search-pro-max. Tag builds release tarballs; npm publication is explicit.
 #
 # Modeled on the official deepseek-harness release.yml pattern:
 #   - pack runs WITHOUT registry credentials on every run — it builds, verifies
 #     the tag/version match, and uploads the exact tarball bytes;
-#   - publish is explicit: a v* tag push or a manual dispatch with
+#   - publish is explicit: a manual dispatch from a v* tag with
 #     publish=true. It consumes the packed bytes (never a rebuild) and is the
 #     only step that can write to the npm registry;
 #   - publish runs are serialized so two versions cannot race dist-tags.
 #
 # One-time setup (package owner):
 #   npm package → Settings → Trusted publishing → GitHub Actions:
-#   owner anweat, repository dsh-web-search-pro, workflow publish.yml,
+#   owner wxcvm, repository dsh-web-search-pro-max, workflow publish.yml,
 #   environment npm-publish, with direct npm publish allowed.
 #
 # Trigger a release:
@@ -109,7 +109,7 @@ jobs:
 
   publish:
     name: Publish to npm
-    if: github.event_name == 'push' || inputs.publish
+    if: github.event_name == 'workflow_dispatch' && inputs.publish && startsWith(github.ref, 'refs/tags/v')
     needs: pack
     runs-on: ubuntu-24.04
     environment: npm-publish
@@ -139,7 +139,7 @@ jobs:
   release:
     name: GitHub Release with tarball
     if: github.event_name == 'push'   # v* tag pushes only
-    needs: [pack, publish]
+    needs: pack
     runs-on: ubuntu-24.04
     permissions:
       contents: write

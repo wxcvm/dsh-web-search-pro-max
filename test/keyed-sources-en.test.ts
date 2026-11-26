@@ -296,7 +296,7 @@ test('router: keys resolve config literal -> credentials ref -> environment into
     fetched.push({ url: String(url), headers: Object.fromEntries(Object.entries((init.headers ?? {}) as Record<string, string>).map(([k, v]) => [k.toLowerCase(), v])) })
     return reply(200, fixture('tavily-search.json').body)
   }) as typeof fetch
-  const base = { dbPath: path.join(dir, 'store.db'), allowProxyFakeIp: true, enableCliBackends: false, opencliEnabled: false, agentReachEnabled: false }
+  const base = { dbPath: path.join(dir, 'store.db'), allowProxyFakeIp: true, enableCliBackends: false, opencliEnabled: false, agentReachEnabled: false, evidence: { sourcePolicy: 'default' } }
   const store = new Store(base.dbPath)
   try {
     const none = new SearchRouter({ get: () => undefined } as never, resolveConfig({ ...base, engines: ['tavily'] } as never), store)

@@ -131,7 +131,7 @@ test('sources.disabled removes a source from the plan, the second-round candidat
 test('anonymous-only never plans a source that needs a key, account or login, even a configured one', () => {
   const zh = plan({ ...ZH, profile: 'general' }, { status: withKeys('bocha'), policy: 'anonymous-only' })
   assert.deepEqual(ids(zh), ['ddg', 'bing'])
-  assert.match(zh.notes.join('\n'), /not planned: jina \(sourcePolicy anonymous-only: free-quota\)/)
+  assert.match(zh.notes.join('\n'), /jina \(sourcePolicy anonymous-only: free-quota\)/)
   assert.ok(!zh.wanted.includes('bocha'))
   // keyed English sources are out; Exa stays while it runs keylessly, and goes once an API key makes its route a keyed one
   assert.deepEqual(ids(plan({ ...EN, profile: 'general' }, { status: withKeys('tavily', 'brave'), policy: 'anonymous-only' })), ['exa', 'ddg'])
@@ -149,11 +149,11 @@ test('an explicit engines list wins over priority, disabled and the policy', () 
 })
 
 test('the policy value and the preference lists are validated: an unknown policy is refused, bad entries are dropped with a reason', () => {
-  assert.equal(resolveSourcePolicy(undefined), 'default')
+  assert.equal(resolveSourcePolicy(undefined), 'anonymous-only')
   assert.equal(resolveSourcePolicy('anonymous-only'), 'anonymous-only')
   assert.throws(() => resolveSourcePolicy('allow-paid'), /evidence\.sourcePolicy must be one of: default, anonymous-only/)
   assert.equal(resolveConfig({ evidence: { sourcePolicy: 'anonymous-only' } } as never).evidence.sourcePolicy, 'anonymous-only')
-  assert.equal(resolveConfig({} as never).evidence.sourcePolicy, 'default')
+  assert.equal(resolveConfig({} as never).evidence.sourcePolicy, 'anonymous-only')
   assert.deepEqual(resolveConfig({} as never).sources, { priority: [], disabled: [], budget: {}, confidence: {} }, 'nothing is capped, ranked, disabled or doubted by default')
   const r = resolveSources({ priority: ['exa', 'exa', 'x y', 7 as never, 'nope'], disabled: ['exa', 'bing'] }, id => id !== 'nope')
   assert.deepEqual([r.priority, r.disabled], [['exa'], ['exa', 'bing']])
@@ -215,4 +215,21 @@ test('the configured engines list honours sources.disabled and sources.priority;
     assert.equal((await run({ disabled: ['alpha'] }, ['alpha'])).engine, 'alpha', 'explicit engines win')
     await assert.rejects(() => run({ disabled: ['alpha', 'beta'] }), /every configured engine is disabled/)
   } finally { fs.rmSync(dir, { recursive: true, force: true }) }
+})
+
+
+test('anonymous automatic routing excludes paid providers unless explicitly requested', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wsp-pro-max-cost-'))
+  const config = resolveConfig({ dbPath: path.join(dir, 'store.db'), engines: ['paid', 'free'], enableCliBackends: false } as never)
+  const registry = createBuiltinRegistry()
+  const paid = dummy('vendor:paid')
+  registry.register({ ...paid, descriptor: { ...paid.descriptor, costModel: { kind: 'metered' }, costTier: 'paid' } })
+  registry.register(dummy('vendor:free'))
+  const store = new Store(config.dbPath)
+  try {
+    const router = new SearchRouter({ get: () => undefined } as never, config, store, undefined, undefined, undefined, registry)
+    const request = { query: 'test', count: 3, fresh: true, multi: false, signal: undefined }
+    assert.equal((await router.search(request)).engine, 'free')
+    assert.equal((await router.search({ ...request, engines: ['paid'] })).engine, 'paid', 'explicit opt-in remains supported')
+  } finally { store.close(); fs.rmSync(dir, { recursive: true, force: true }) }
 })

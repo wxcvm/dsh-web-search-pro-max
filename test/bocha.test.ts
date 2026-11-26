@@ -233,7 +233,7 @@ async function withRouter(env: Record<string, string | undefined>, fn: (h: { rou
   const realFetch = globalThis.fetch
   const fetched: Call[] = []
   globalThis.fetch = (async (url: unknown, init: RequestInit) => { const call = { url: String(url), init, body: JSON.parse(String(init.body)) }; fetched.push(call); return reply(200, SUCCESS.body) }) as typeof fetch
-  const config = resolveConfig({ dbPath: path.join(dir, 'store.db'), engines: ['bocha'], enableCliBackends: false, opencliEnabled: false, agentReachEnabled: false, ...over } as never)
+  const config = resolveConfig({ dbPath: path.join(dir, 'store.db'), engines: ['bocha'], evidence: { sourcePolicy: 'default' }, enableCliBackends: false, opencliEnabled: false, agentReachEnabled: false, ...over } as never)
   const store = new Store(config.dbPath)
   const router = new SearchRouter({ get: () => undefined } as never, config, store)
   try { await fn({ router, store, fetched, dir }) } finally {

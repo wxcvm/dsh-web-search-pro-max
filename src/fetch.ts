@@ -305,7 +305,7 @@ export class FetchService {
     if (opts.mode === 'http' || (opts.mode === 'auto' && !hasContent())) await attempt('http', () => this.fetchHttp(normalized, opts, maxChars, rules))
 
     // DeepSeek Fetch API (paid, off unless `deepseekFetch`): explicit `mode: deepseek`, or in auto mode when the free backends found no content.
-    if (opts.mode === 'deepseek' || (opts.mode === 'auto' && this.cfg().deepseekFetch === true && !hasContent())) await attempt('deepseek', () => this.fetchDeepSeek(normalized, opts, maxChars))
+    if (opts.mode === 'deepseek' || (opts.mode === 'auto' && this.cfg().evidence?.sourcePolicy !== 'anonymous-only' && this.cfg().deepseekFetch === true && !hasContent())) await attempt('deepseek', () => this.fetchDeepSeek(normalized, opts, maxChars))
 
     // Browser render: an explicit request always; auto only when nothing usable came back (no result at all, or only
     // a shell / JS stub / login wall that a real browser may see through). It is optional and never installed here.
@@ -364,7 +364,7 @@ export class FetchService {
   private async fetchJina(url: string, opts: FetchOptions, maxChars: number): Promise<FetchResult> {
     const cfg = this.cfg()
     const headers: Record<string, string> = {}
-    const key = cfg.jinaApiKey || process.env[cfg.jinaApiKeyEnv]
+    const key = opts.mode === 'auto' && cfg.evidence?.sourcePolicy === 'anonymous-only' ? undefined : cfg.jinaApiKey || process.env[cfg.jinaApiKeyEnv]
     if (key) headers['authorization'] = 'Bearer ' + key
     headers['x-respond-with'] = 'markdown'
     const res = await httpGet('https://r.jina.ai/' + url, { headers, signal: opts.signal, timeoutMs: 30_000, allowProxyFakeIp: cfg.allowProxyFakeIp })

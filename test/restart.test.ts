@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
 import { isRestartField, pendingRestart, pendingRestartLine, restartValues, RESTART_FIELD_LIST, RESTART_FIELDS } from '../src/restart.ts'
@@ -54,7 +55,7 @@ test('pendingRestart compares what the plugin started with and what the configur
   assert.deepEqual(pendingRestart(mounted, mounted), [])
   const moved = restartValues(resolveConfig({ dbPath: '/data/a/store.db', toolSurface: 'flat', registerProvider: true, timeoutMs: 45_000, playwright: { snapshotDir: '/shots' } } as never))
   assert.deepEqual(pendingRestart(mounted, moved).map(entry => [entry.field, entry.running, entry.configured]), [
-    ['toolSurface', 'indexed', 'flat'], ['playwright.snapshotDir', '/data/a/snapshots', '/shots'], ['registerProvider', 'false', 'true'], ['timeoutMs', '30000', '45000'],
+    ['toolSurface', 'indexed', 'flat'], ['playwright.snapshotDir', path.join('/data/a', 'snapshots'), '/shots'], ['registerProvider', 'false', 'true'], ['timeoutMs', '30000', '45000'],
   ])
   assert.equal(pendingRestartLine({ field: 'toolSurface', running: 'indexed', configured: 'flat' }), '待重启：toolSurface（当前生效 indexed，配置为 flat）')
 })
@@ -115,7 +116,7 @@ test('the overlay file beside dbPath is merged into what every consumer reads, a
 
 test('the overlay never reaches a restart field or a key: it merges only the five overridable settings', () => {
   const base = resolveConfig({ dbPath: '/x/store.db', toolSurface: 'flat', exaApiKey: 'literal-key' } as never)
-  const dir = fs.mkdtempSync(path.join(process.env.TMPDIR ?? '/tmp', 'wsp-ovl-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wsp-ovl-'))
   try {
     const file = path.join(dir, 'overlay.json')
     const values = { engines: ['bing'], cliAdapters: { mine: engineSpec() } }

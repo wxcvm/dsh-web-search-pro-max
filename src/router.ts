@@ -35,6 +35,7 @@ import { createPlatformCacheKey, createSearchCacheKey } from './cache-key.ts'
 import { allAttemptsBenign, allAttemptsEmpty, BackendRegistry, NoBackendError, type Backend, type BackendAttempt, type BackendDiagnostic } from './backend-registry.ts'
 import { ExaClient, type ExaResult } from './exa-client.ts'
 import { SingleFlight } from './singleflight.ts'
+import { mapConcurrent, SEARCH_CONCURRENCY } from './search-concurrency.ts'
 import { mergeCandidates, provenanceOf, type ProviderOutput } from './pipeline/candidates.ts'
 import { guaranteeSeats } from './pipeline/confidence.ts'
 import { fuseCandidates } from './pipeline/fusion.ts'
@@ -343,12 +344,27 @@ export class SearchRouter {
   private async preferred(ids: string[]): Promise<string[]> {
     const cfg = this.dynamic()
     const src = cfg.sources
+    const anonymousOnly = cfg.evidence?.sourcePolicy === 'anonymous-only'
+    const disabled = this.canonicalIds(src?.disabled ?? [])
+    const anonymousBlocked: string[] = []
+    if (anonymousOnly) {
+      const env = await this.probeEnv()
+      for (const id of ids) {
+        const adapter = this.registry.resolve(id)
+        if (!adapter) { anonymousBlocked.push(id); continue }
+        try {
+          const readiness = await adapter.probeLocal(env)
+          if ((readiness.costTier ?? costTierOf(adapter.descriptor)) !== 'anonymous') anonymousBlocked.push(id)
+        } catch { anonymousBlocked.push(id) }
+      }
+    }
     return effectiveChain({
       engines: ids,
       priority: this.canonicalIds(src?.priority ?? []),
-      disabled: this.canonicalIds(src?.disabled ?? []),
-      anonymousOnly: cfg.evidence?.sourcePolicy === 'anonymous-only',
-      commonReady: await this.commonReady(),
+      disabled,
+      anonymousOnly,
+      anonymousBlocked,
+      commonReady: anonymousOnly ? [] : await this.commonReady(),
     })
   }
 
@@ -687,10 +703,22 @@ export class SearchRouter {
   }
 
   /** Whether any configured engine is currently usable. */
-  anyEngineAvailable(): boolean {
+  anyEngineAvailable(skipSeam = false): boolean {
     this.syncBackends()
-    const ids = this.canonicalIds(this.dynamic().engines)
-    return ids.some(id => { try { return this.buildSync(id, false).available() } catch { return false } })
+    const cfg = this.dynamic()
+    const disabled = new Set(this.canonicalIds(cfg.sources?.disabled ?? []))
+    const ids = this.canonicalIds(cfg.engines)
+    return ids.some(id => {
+      if (disabled.has(id) || (skipSeam && id === 'seam')) return false
+      const adapter = this.registry.resolve(id)
+      if (!adapter) return false
+      if (cfg.evidence?.sourcePolicy === 'anonymous-only') {
+        if (costTierOf(adapter.descriptor) !== 'anonymous') return false
+        const deps = this.depsSync(skipSeam)
+        if ((id === 'exa' && (deps.exaApiKey || process.env.EXA_API_KEY)) || (id === 'anysearch' && deps.anysearchApiKey)) return false
+      }
+      try { return this.buildSync(id, skipSeam).available() } catch { return false }
+    })
   }
 
   private async build(id: string, skipSeam: boolean, usage?: UsageRecorder): Promise<Engine> {
@@ -775,12 +803,12 @@ export class SearchRouter {
     const bindings = platform ? undefined : this.bindingsOf(ids)
     const cacheKey = platform
       ? createPlatformCacheKey({ platform: platform.id, query: query || platform.url || platform.id, ...platform.url ? { url: platform.url } : {}, count, ...platform.authProfile ? { authProfile: platform.authProfile } : {}, ...platform.rulePack ? { rulePack: platform.rulePack } : {} })
-      : createSearchCacheKey({ query, engines: ids, count, multi, ...opts.exa ? { exa: opts.exa as Record<string, unknown> } : {}, ...bindings ? { browser: bindings } : {} })
+      : createSearchCacheKey({ query, engines: ids, count, multi, ...opts.skipSeam ? { skipSeam: true } : {}, ...opts.exa ? { exa: opts.exa as Record<string, unknown> } : {}, ...bindings ? { browser: bindings } : {} })
     const memoryKey = cacheKey + ':count=' + count
     const run = (signal: AbortSignal | undefined): Promise<RouterSearchResult> => this.runSearch({ opts, query, nq, ids, count, multi, cacheKey, memoryKey, ...platform ? { platform } : {} }, signal)
     if (opts.fresh) return run(opts.signal)
-    // skipSeam changes which engines can run, so it must be part of the flight identity.
-    return this.searchFlights.do(memoryKey + (opts.skipSeam ? ':skipSeam' : ''), run, opts.signal)
+    // The cache identity already includes skipSeam for both persisted results and flights.
+    return this.searchFlights.do(memoryKey, run, opts.signal)
   }
 
   /**
@@ -848,7 +876,12 @@ export class SearchRouter {
       // Every engine goes through the registry (probe, cooldown, quality gate,
       // attempts) in parallel; failures of one never cancel the others.
       const input = { query, count, signal, skipSeam: opts.skipSeam ?? false, ...opts.exa ? { options: { exa: opts.exa } } : {} }
-      const results = await Promise.allSettled(ids.map(id => this.backends.runSelected(input, { preferred: [id], ...signal ? { signal } : {} })))
+      const results = await mapConcurrent(ids, SEARCH_CONCURRENCY, async (id) => {
+        try {
+          signal?.throwIfAborted()
+          return { status: 'fulfilled' as const, value: await this.backends.runSelected(input, { preferred: [id], ...signal ? { signal } : {} }) }
+        } catch (reason) { return { status: 'rejected' as const, reason } }
+      })
       if (signal?.aborted) throw signal.reason ?? new DOMException('This operation was aborted', 'AbortError')
       enginesTried.push(...ids)
       // Merge by canonical URL (every provider/rank/query contribution kept),
@@ -1001,7 +1034,7 @@ export class SearchRouter {
       query: request.query,
       count: request.maxResults ?? cfg.searchMaxResults,
       fresh: false,
-      multi: cfg.parallelEngines,
+      multi: cfg.provider?.evidence === 'fast' ? false : cfg.provider?.evidence === 'smart' ? true : cfg.parallelEngines,
       signal,
       skipSeam: true,
     })

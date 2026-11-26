@@ -10,7 +10,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 import { before, test } from 'node:test'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse } from 'node-html-parser'
 import { ALL_SPECS, CREDENTIAL_IDS } from '../src/client/form.ts'
 import { JSON_FIELDS, SOURCE_DEFS, sourceFields } from '../src/client/field-keys.ts'
@@ -32,10 +32,10 @@ before(async () => {
   // No skip on failure: the card is part of what ships, so an environment that cannot bundle it must fail loudly.
   {
     const fromTsdown = createRequire(require.resolve('tsdown/package.json'))
-    const rolldown = await import(fromTsdown.resolve('rolldown'))
+    const rolldown = await import(pathToFileURL(fromTsdown.resolve('rolldown')).href)
     const bundle = await rolldown.rolldown({
-      input: new URL('./ui/ssr-entry.tsx', import.meta.url).pathname, platform: 'node', logLevel: 'silent',
-      resolve: { alias: { '@deepseek-ai/dsh-client-ui-primitives': new URL('./ui/primitives-stub.ts', import.meta.url).pathname } },
+      input: fileURLToPath(new URL('./ui/ssr-entry.tsx', import.meta.url)), platform: 'node', logLevel: 'silent',
+      resolve: { alias: { '@deepseek-ai/dsh-client-ui-primitives': fileURLToPath(new URL('./ui/primitives-stub.ts', import.meta.url)) } },
       transform: { define: { 'process.env.NODE_ENV': '"development"' }, jsx: { runtime: 'automatic' } },
     } as never)
     const { output } = await bundle.generate({ format: 'esm' })
@@ -128,11 +128,11 @@ test('lists: one row per source with its tier, key state and the common mark; on
 test('the status summary shows the chain a search tries: DeepSeek leads once its key is stored, sources.disabled removes it, a customised engines list is left alone', async () => {
   const chain = (root: ReturnType<typeof parse>) => root.querySelector('[data-wsp-chain]')!.querySelectorAll('code').map(node => node.text)
   const none = await page('en')
-  assert.deepEqual(chain(none.root), ['seam', 'exa', 'ddg'], 'the harness engines are seam, exa, ddg and a custom list is shown as it is')
-  const withKey = await page('en', { engines: ['ddg', 'bing', 'exa', 'seam', 'jina'] }, { DEEPSEEK_API_KEY: 'x' })
+  assert.deepEqual(chain(none.root), ['exa', 'ddg'], 'the default anonymous policy excludes unknown-cost host seam')
+  const withKey = await page('en', { engines: ['ddg', 'bing', 'exa', 'seam', 'jina'], evidence: { sourcePolicy: 'default' } }, { DEEPSEEK_API_KEY: 'x' })
   assert.deepEqual(chain(withKey.root), ['deepseek', 'ddg', 'bing', 'exa', 'seam', 'jina'])
   assert.match(withKey.root.querySelector('[data-wsp-summary]')!.text, /DeepSeek Search \/ Fetch · Common · ready/)
-  const disabled = await page('en', { engines: ['ddg', 'bing', 'exa', 'seam', 'jina'], sources: { disabled: ['deepseek'] } }, { DEEPSEEK_API_KEY: 'x' })
+  const disabled = await page('en', { engines: ['ddg', 'bing', 'exa', 'seam', 'jina'], evidence: { sourcePolicy: 'default' }, sources: { disabled: ['deepseek'] } }, { DEEPSEEK_API_KEY: 'x' })
   assert.deepEqual(chain(disabled.root), ['ddg', 'bing', 'exa', 'seam', 'jina'])
   const own = await page('en', { engines: ['bing', 'ddg'] }, { DEEPSEEK_API_KEY: 'x' })
   assert.deepEqual(chain(own.root), ['bing', 'ddg'])
@@ -156,7 +156,7 @@ test('the groups hold the fields the milestone names, and enum options are the s
   for (const field of ['rrfConstant', 'freshnessBoost', 'freshnessDays', 'authorityBoost', 'authorityDomains']) assert.ok(within('ranking', field), field)
   const options = (id: string) => root.querySelectorAll(`select[id="web-search-pro-${id}"] option`).map(option => option.getAttribute('value'))
   assert.deepEqual(options('toolSurface'), ['indexed', 'flat'])
-  assert.deepEqual(options('provider.evidence'), ['auto', 'off'])
+  assert.deepEqual(options('provider.evidence'), ['auto', 'off', 'fast', 'smart', 'research'])
   assert.deepEqual(options('evidence.judge.mode'), ['off', 'shadow', 'control', 'hybrid'])
   assert.deepEqual(options('evidence.coverage.mode'), ['off', 'shadow', 'control'])
   assert.deepEqual(options('evidence.sourcePolicy'), ['default', 'anonymous-only'])

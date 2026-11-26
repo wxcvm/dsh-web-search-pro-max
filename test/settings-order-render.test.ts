@@ -9,7 +9,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 import { before, test } from 'node:test'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse } from 'node-html-parser'
 import { ORDER_PLATFORMS } from '../src/client/order.ts'
 import { harness } from './settings-harness.ts'
@@ -20,10 +20,10 @@ let renderForms: ((state: unknown, lang: 'zh' | 'en', clis?: Record<string, Reco
 
 before(async () => {
   const fromTsdown = createRequire(require.resolve('tsdown/package.json'))
-  const rolldown = await import(fromTsdown.resolve('rolldown'))
+  const rolldown = await import(pathToFileURL(fromTsdown.resolve('rolldown')).href)
   const bundle = await rolldown.rolldown({
-    input: new URL('./ui/ssr-entry.tsx', import.meta.url).pathname, platform: 'node', logLevel: 'silent',
-    resolve: { alias: { '@deepseek-ai/dsh-client-ui-primitives': new URL('./ui/primitives-stub.ts', import.meta.url).pathname } },
+    input: fileURLToPath(new URL('./ui/ssr-entry.tsx', import.meta.url)), platform: 'node', logLevel: 'silent',
+    resolve: { alias: { '@deepseek-ai/dsh-client-ui-primitives': fileURLToPath(new URL('./ui/primitives-stub.ts', import.meta.url)) } },
     transform: { define: { 'process.env.NODE_ENV': '"development"' }, jsx: { runtime: 'automatic' } },
   } as never)
   const { output } = await bundle.generate({ format: 'esm' })
@@ -111,19 +111,19 @@ test('the order a search would use: DeepSeek leads, disabled leaves, only-free k
   const defaults = ['ddg', 'bing', 'exa', 'seam', 'jina']
   const chain = (root: ReturnType<typeof parse>) => group(root, 'order').querySelector('[data-wsp-chain]')!.querySelectorAll('code').map(node => node.text)
   const why = (root: ReturnType<typeof parse>) => group(root, 'order').querySelector('[data-wsp-why]')!.text
-  const lead = await page('en', { engines: defaults }, { DEEPSEEK_API_KEY: 'x' })
+  const lead = await page('en', { engines: defaults, evidence: { sourcePolicy: 'default' } }, { DEEPSEEK_API_KEY: 'x' })
   assert.deepEqual(chain(lead.root), ['deepseek', ...defaults])
   assert.match(why(lead.root), /deepseek: a key is set, so the default rule puts it in front of the list/)
-  const off = await page('en', { engines: defaults, sources: { disabled: ['bing'] } }, { DEEPSEEK_API_KEY: 'x' })
+  const off = await page('en', { engines: defaults, evidence: { sourcePolicy: 'default' }, sources: { disabled: ['bing'] } }, { DEEPSEEK_API_KEY: 'x' })
   assert.deepEqual(chain(off.root), ['deepseek', 'ddg', 'exa', 'seam', 'jina'])
   assert.match(why(off.root), /sources\.disabled leaves out bing\./)
   const free = await page('en', { engines: defaults, evidence: { sourcePolicy: 'anonymous-only' } }, { DEEPSEEK_API_KEY: 'x' })
-  assert.deepEqual(chain(free.root), defaults)
-  assert.match(why(free.root), /Free sources only \(anonymous-only\): deepseek is not added\./)
-  const own = await page('en', { engines: ['bing', 'ddg'] }, { DEEPSEEK_API_KEY: 'x' })
+  assert.deepEqual(chain(free.root), ['ddg', 'bing', 'exa'])
+  assert.match(why(free.root), /Free sources only \(anonymous-only\): deepseek, seam, jina is not added\./)
+  const own = await page('en', { engines: ['bing', 'ddg'], evidence: { sourcePolicy: 'default' } }, { DEEPSEEK_API_KEY: 'x' })
   assert.deepEqual(chain(own.root), ['bing', 'ddg'])
   assert.match(why(own.root), /your own order, so deepseek is not added/)
-  const prio = await page('en', { engines: defaults, sources: { priority: ['jina'] } })
+  const prio = await page('en', { engines: defaults, evidence: { sourcePolicy: 'default' }, sources: { priority: ['jina'] } })
   assert.deepEqual(chain(prio.root), ['jina', 'ddg', 'bing', 'exa', 'seam'])
   assert.match(why(prio.root), /sources\.priority moves jina to the front/)
   const plain = await page('en', { engines: ['ddg', 'bing'] })
@@ -131,7 +131,7 @@ test('the order a search would use: DeepSeek leads, disabled leaves, only-free k
   const none = await page('en', { engines: ['ddg'], sources: { disabled: ['ddg'] } })
   assert.match(why(none.root), /Every engine is disabled/)
   // A draft edit shows at once: the preview reads the staged text.
-  const staged = await page('zh', { engines: defaults }, { DEEPSEEK_API_KEY: 'x' }, undefined, controller => controller.edit('engines', 'bing, ddg'))
+  const staged = await page('zh', { engines: defaults, evidence: { sourcePolicy: 'default' } }, { DEEPSEEK_API_KEY: 'x' }, undefined, controller => controller.edit('engines', 'bing, ddg'))
   assert.deepEqual(chain(staged.root), ['bing', 'ddg'])
   assert.match(why(staged.root), /这是你自己写的顺序，deepseek 不会自动加入/)
 })

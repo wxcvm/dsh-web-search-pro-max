@@ -331,7 +331,7 @@ function routerFor(over: Record<string, unknown>, env: Record<string, string | u
   delete process.env.DEEPSEEK_API_KEY
   for (const [n, v] of Object.entries(env)) { if (v === undefined) delete process.env[n]; else process.env[n] = v }
   const ctx = { get: (name: string) => name === 'credentials' && credentials ? { resolve: async (ref: unknown) => { const v = credentials(String((ref as { name?: string })?.name ?? ref)); return v ? { value: v } : undefined } } : undefined }
-  const config = resolveConfig({ dbPath: path.join(dir, 'store.db'), allowProxyFakeIp: true, enableCliBackends: false, opencliEnabled: false, agentReachEnabled: false, ...over } as never)
+  const config = resolveConfig({ dbPath: path.join(dir, 'store.db'), allowProxyFakeIp: true, enableCliBackends: false, opencliEnabled: false, agentReachEnabled: false, evidence: { sourcePolicy: 'default' }, ...over } as never)
   const router = new SearchRouter(ctx as never, config, store)
   const preferred = (ids: string[]): Promise<string[]> => (router as unknown as { preferred(ids: string[]): Promise<string[]> }).preferred(ids)
   return { router, store, preferred, cleanup: () => { for (const [n, v] of Object.entries(saved)) { if (v === undefined) delete process.env[n]; else process.env[n] = v } store.close(); fs.rmSync(dir, { recursive: true, force: true }) } }
@@ -360,7 +360,7 @@ test('default chain precedence: sources.priority, then sources.disabled, then th
   r = withKey({ sources: { disabled: ['deepseek'] } })
   try { assert.deepEqual(await r.preferred(DEFAULT), DEFAULT, 'sources.disabled') } finally { r.cleanup() }
   r = withKey({ evidence: { sourcePolicy: 'anonymous-only' } })
-  try { assert.deepEqual(await r.preferred(DEFAULT), DEFAULT, 'anonymous-only') } finally { r.cleanup() }
+  try { assert.deepEqual(await r.preferred(DEFAULT), ['ddg', 'bing', 'exa'], 'anonymous-only') } finally { r.cleanup() }
   r = withKey({ engines: ['ddg', 'bing'] })
   try { assert.deepEqual(await r.preferred(['ddg', 'bing']), ['ddg', 'bing'], 'a list the user wrote is not touched') } finally { r.cleanup() }
   r = withKey({ engines: ['ddg', 'deepseek'] })
@@ -561,7 +561,7 @@ const PROSE = 'The busy timeout of a SQLite connection decides how long a writer
 
 function fetchHarness(over: Record<string, unknown>, access: 'key' | 'none' = 'key', deepseekReply: (n: number) => Response = () => reply(200, { title: 'From DeepSeek', content: PROSE })) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wsp-deepseek-fetch-'))
-  const config = resolveConfig({ dbPath: path.join(dir, 'store.db'), ttlSeconds: 60, playwright: { enabled: false }, allowProxyFakeIp: true, ...over } as never)
+  const config = resolveConfig({ dbPath: path.join(dir, 'store.db'), ttlSeconds: 60, playwright: { enabled: false }, allowProxyFakeIp: true, evidence: { sourcePolicy: 'default' }, ...over } as never)
   const store = new Store(config.dbPath)
   const api: { url: string; body: any }[] = []
   const fetchImpl = (async (url: unknown, init: RequestInit) => { api.push({ url: String(url), body: JSON.parse(String(init.body)) }); return deepseekReply(api.length) }) as typeof fetch

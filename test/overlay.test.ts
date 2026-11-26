@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
+import path from 'node:path'
 import test from 'node:test'
 import { resolveConfig } from '../src/config.ts'
 import { ActionArgError, ActionConflictError, ActionNotFoundError, ActionUnavailableError } from '../src/actions/types.ts'
@@ -9,8 +10,8 @@ import { engineSpec, overlayHarness } from './overlay-helpers.ts'
 const posix = process.platform !== 'win32'
 
 test('the overlay file sits beside dbPath: $DSH_HOME/data/web-search-pro/overlay.json by default, the dbPath folder when it was moved', () => {
-  assert.equal(overlayFileFor('/home/u/.dsh/data/web-search-pro/store.db'), '/home/u/.dsh/data/web-search-pro/overlay.json')
-  assert.equal(overlayFileFor('/srv/search/cache.sqlite'), '/srv/search/overlay.json')
+  assert.equal(overlayFileFor('/home/u/.dsh/data/web-search-pro/store.db'), path.normalize('/home/u/.dsh/data/web-search-pro/overlay.json'))
+  assert.equal(overlayFileFor('/srv/search/cache.sqlite'), path.normalize('/srv/search/overlay.json'))
 })
 
 test('a write puts a checksummed overlay file (0600) in place, bumps the revision, and the effective config is baseline + overlay', { skip: !posix }, () => {

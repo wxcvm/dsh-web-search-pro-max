@@ -203,8 +203,9 @@ test('the plugin does not depend on a skill service: it declares none and works 
     const reply = await call.execute({ action: 'cache.stats' }, { signal: new AbortController().signal })
     assert.equal(reply.ok, true, 'actions keep working without the skill')
   } finally {
-    fiber?.dispose()
-    fs.rmSync(dir, { recursive: true, force: true })
+    await fiber?.dispose()
+    await settle()
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 4, retryDelay: 100 })
   }
 })
 
@@ -240,8 +241,9 @@ test('when a skill service appears, the provider is registered and the guide giv
     assert.equal(unregistered.length, 1, 'the provider is withdrawn with the registry')
     assert.ok(((await index.execute({}, {})).text as string).includes('Guide:'))
   } finally {
-    fiber?.dispose()
-    fs.rmSync(dir, { recursive: true, force: true })
+    await fiber?.dispose()
+    await settle()
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 4, retryDelay: 100 })
   }
 })
 
@@ -266,8 +268,9 @@ test('the ctx.web provider is unaffected by the tool surface and by the skill se
         assert.equal(registered.fetch[0].available(), true)
         assert.equal(tools.length, toolSurface === 'flat' ? ACTIONS.length : 2)
       } finally {
-        fiber?.dispose()
-        fs.rmSync(dir, { recursive: true, force: true })
+        await fiber?.dispose()
+        await settle()
+        fs.rmSync(dir, { recursive: true, force: true, maxRetries: 4, retryDelay: 100 })
       }
     }
   }

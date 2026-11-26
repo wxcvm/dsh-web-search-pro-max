@@ -1,3 +1,4 @@
+import { SEARCH_CONCURRENCY } from '../search-concurrency.ts'
 /**
  * The evidence pipeline (dev-plan §4.3): S1 plan -> S2 recall -> S3/S4 merge,
  * fuse, gate -> S5 read and split -> S6 score -> S7 select -> S8 coverage ->
@@ -231,6 +232,7 @@ export async function runPipeline(task: TaskSpec, deps: PipelineDeps, options: P
   const emptyDetails = new Map<string, string>()
   const searchOne = async (id: string, compiled: CompiledQuery, sink: string[], take: () => boolean): Promise<ProviderOutput | undefined> => {
     const search = deps.searchProvider!
+    if (stage.aborted) { cut = true; return undefined }
     if (!take()) return undefined
     queries++
     for (const query of [compiled.query, ...compiled.fallbacks ?? []]) {
@@ -266,7 +268,7 @@ export async function runPipeline(task: TaskSpec, deps: PipelineDeps, options: P
 
   const outputs: ProviderOutput[] = []
   if (firstRound.length && deps.searchProvider) {
-    const found = await Promise.all(firstRound.map(({ id, compiled }) => searchOne(id, compiled, failures, () => true)))
+    const found = await pool(firstRound, SEARCH_CONCURRENCY, ({ id, compiled }) => searchOne(id, compiled, failures, () => true))
     for (const output of found) if (output) outputs.push(output)
     checkUser()
   }
@@ -308,7 +310,7 @@ export async function runPipeline(task: TaskSpec, deps: PipelineDeps, options: P
     const before = queries
     let budget = left
     const sink: string[] = []
-    const found = await Promise.all(jobs.map(job => searchOne(job.id, job.compiled, sink, () => (budget > 0 ? (budget--, true) : false))))
+    const found = await pool(jobs, SEARCH_CONCURRENCY, job => searchOne(job.id, job.compiled, sink, () => (budget > 0 ? (budget--, true) : false)))
     return {
       state: 'ok',
       outputs: found.filter((o): o is ProviderOutput => o !== undefined),

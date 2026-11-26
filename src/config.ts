@@ -62,7 +62,7 @@ export interface EvidenceConfig {
   /**
    * Which sources the automatic plan may use (dev-plan M11a). `default`: sources the user configured (a key) are promoted for
    * their language and profile, otherwise the anonymous / free ones lead. `anonymous-only`: never a source that needs a key,
-   * account or login, even a configured one. Explicit `engines` / `platform` in a call always win.
+   * account or login, even a configured one. Explicit `engines` / `platform` in a call always win; these may incur charges.
    */
   sourcePolicy: SourcePolicy
   /** Retrieval rounds per task (S8 bounded re-search): 1 disables the second round. Default 2. */
@@ -94,10 +94,10 @@ export interface EvidenceConfig {
 /**
  * Settings of the ctx.web provider route (dev-plan M8c): what the Host's built-in `web_search` returns when this plugin is the selected provider.
  * `evidence: 'auto'` runs the evidence pipeline for every provider search and returns the pack as `content` (plain sources when it fails);
- * `off` keeps the plain source list.
+ * `off` retains the plain source list; `fast` selects ordered fallback, `smart` parallel fusion, `research` the evidence pipeline.
  */
 export interface ProviderSettings {
-  evidence: 'auto' | 'off'
+  evidence: typeof PROVIDER_EVIDENCE_MODES[number]
   /** Deadline of the evidence run inside one provider search, in ms (the pipeline returns a partial pack when it is reached). */
   deadlineMs: number
 }
@@ -109,7 +109,7 @@ export function resolveProviderEvidence(value: unknown): ProviderSettings['evide
 }
 
 export function resolveSourcePolicy(value: unknown): SourcePolicy {
-  const policy = value ?? 'default'
+  const policy = value ?? 'anonymous-only'
   if (typeof policy !== 'string' || !SOURCE_POLICIES.includes(policy as SourcePolicy)) throw new Error('evidence.sourcePolicy must be one of: ' + SOURCE_POLICIES.join(', '))
   return policy as SourcePolicy
 }
@@ -270,7 +270,7 @@ export interface Config {
   authorityBoost: number
   /** Extra authority domains (beyond the built-in .edu/.gov/.org and the curated list). */
   authorityDomains: string[]
-  /** SQLite database path; defaults to $DSH_HOME/data/web-search-pro/store.db */
+  /** SQLite database path; defaults to $DSH_HOME/data/web-search-pro-max/store.db */
   dbPath?: string
   verbose: boolean
 }
@@ -330,7 +330,7 @@ export const Config = z.object({
     hybridBorderline: z.boolean().default(false).volatile(),
     maxJevQuestions: z.number().default(64).volatile(),
     autoProviders: z.boolean().default(true).volatile(),
-    sourcePolicy: z.string().default('default').volatile(),
+    sourcePolicy: z.string().default('anonymous-only').volatile(),
     maxRounds: z.number().default(2).volatile(),
     maxQueries: z.number().default(4).volatile(),
     rubrics: z.dict(z.object({
@@ -405,7 +405,7 @@ export const Config = z.object({
     authProfile: z.string(),
     rulePack: z.string(),
   })).volatile(),
-  providerId: z.string().default('web-search-pro').volatile(),
+  providerId: z.string().default('web-search-pro-max').volatile(),
   registerProvider: z.boolean().default(false).volatile(),
   provider: z.object({
     evidence: z.string().default('auto').volatile(),
@@ -465,7 +465,7 @@ function vOr<T>(value: T | { get(): T } | undefined, fallback: T): T {
 /** Default database path under the harness home. */
 export function defaultDbPath(): string {
   const home = process.env.DSH_HOME ?? path.join(os.homedir(), '.dsh')
-  return path.join(home, 'data', 'web-search-pro', 'store.db')
+  return path.join(home, 'data', 'web-search-pro-max', 'store.db')
 }
 
 export { normalizeJudge, normalizeRubrics, normalizeCoverage } from './config-fillers.ts'
@@ -519,7 +519,7 @@ export function resolveConfig(config: Config): ResolvedConfig {
     enableCliBackends: vOr(config.enableCliBackends, true) as boolean,
     opencliEnabled: vOr(config.opencliEnabled, true) as boolean,
     agentReachEnabled: vOr(config.agentReachEnabled, true) as boolean,
-    providerId: vOr(config.providerId, 'web-search-pro') as string,
+    providerId: vOr(config.providerId, 'web-search-pro-max') as string,
     registerProvider: vOr(config.registerProvider, false) as boolean,
     provider: {
       evidence: resolveProviderEvidence(vOr(pv.evidence as unknown, 'auto')),
@@ -540,7 +540,7 @@ export function resolveConfig(config: Config): ResolvedConfig {
       hybridBorderline: vOr(ev.hybridBorderline, false) as boolean,
       maxJevQuestions: vOr(ev.maxJevQuestions, 64) as number,
       autoProviders: vOr(ev.autoProviders, true) as boolean,
-      sourcePolicy: resolveSourcePolicy(vOr(ev.sourcePolicy as unknown, 'default')),
+      sourcePolicy: resolveSourcePolicy(vOr(ev.sourcePolicy as unknown, 'anonymous-only')),
       maxRounds: vOr(ev.maxRounds, 2) as number,
       maxQueries: vOr(ev.maxQueries, 4) as number,
       ...ev.rubrics !== undefined && v(ev.rubrics) ? { rubrics: normalizeRubrics(v(ev.rubrics)) as Record<string, RubricOverride> } : {},

@@ -28,7 +28,7 @@ const PLAIN = { content: 'PLAIN', sources: [{ url: 'https://plain.test/a', title
 function setup(over: Record<string, unknown> = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wsp-provider-route-'))
   const config = resolveConfig({
-    engines: ['seam', 'ddg'], parallelEngines: false, searchMaxResults: 8, timeoutMs: 5_000, ttlSeconds: 60, memoryCacheEntries: 16,
+    engines: ['seam', 'ddg'], evidence: { sourcePolicy: 'default' }, parallelEngines: false, searchMaxResults: 8, timeoutMs: 5_000, ttlSeconds: 60, memoryCacheEntries: 16,
     rrfConstant: 60, freshnessBoost: 0, authorityBoost: 0, freshnessDays: 30, authorityDomains: [], enableCliBackends: false,
     opencliEnabled: false, agentReachEnabled: false, registerProvider: true, providerId: 'wsp-test',
     dbPath: path.join(dir, 'store.db'), playwright: { enabled: true, snapshotDir: path.join(dir, 'shots') }, allowProxyFakeIp: false, verbose: false,
@@ -56,11 +56,12 @@ function provider(h: ReturnType<typeof setup>, over: { evidence?: any; router?: 
   return createSearchProvider({ router: over.router ?? h.router, evidence: () => over.evidence ?? h.service, dynamic: () => h.config, id: () => 'wsp-test', surface: 'indexed', ...over.guardMs !== undefined ? { guardMs: over.guardMs } : {} })
 }
 
-test('provider.evidence defaults to auto, accepts off, and rejects anything else', () => {
+test('provider.evidence defaults to auto, accepts legacy and explicit modes, and rejects unknown modes', () => {
   assert.equal(resolveConfig({ dbPath: '/tmp/x.db' } as never).provider.evidence, 'auto')
   assert.equal(resolveConfig({ dbPath: '/tmp/x.db' } as never).provider.deadlineMs, 25_000)
   assert.equal(resolveConfig({ dbPath: '/tmp/x.db', provider: { evidence: 'off', deadlineMs: 9_000 } } as never).provider.evidence, 'off')
-  assert.throws(() => resolveConfig({ dbPath: '/tmp/x.db', provider: { evidence: 'always' } } as never), /provider\.evidence must be one of: auto, off/)
+  assert.throws(() => resolveConfig({ dbPath: '/tmp/x.db', provider: { evidence: 'always' } } as never), /provider\.evidence must be one of: auto, off, fast, smart, research/)
+  for (const mode of ['fast', 'smart', 'research']) assert.equal(resolveConfig({ provider: { evidence: mode } } as never).provider.evidence, mode)
   // The route stays opt-in: registering would make web_search ambiguous for a Host that pins nothing.
   assert.equal(resolveConfig({ dbPath: '/tmp/x.db' } as never).registerProvider, false)
 })
@@ -310,4 +311,18 @@ test('sources.status reports the route: not registered by default, registered an
     const text = renderResult('sources.status', result)
     assert.match(text, /web_search: this plugin \(evidence=off\); web_fetch: NOT this plugin \(the Host is pinned to "http"\)/)
   } finally { on.cleanup() }
+})
+
+
+test('native fast and smart modes avoid evidence; research explicitly uses it', async () => {
+  for (const mode of ['fast', 'smart', 'research'] as const) {
+    const h = setup({ provider: { evidence: mode } })
+    try {
+      let plain = 0, research = 0
+      const router = { ...h.router, searchAsProvider: async () => { plain++; return PLAIN } }
+      await provider(h, { router, evidence: { search: async (request: any) => { research++; return h.service.search(request) } } }).search({ query: 'node:sqlite busy timeout', maxResults: 3 })
+      assert.equal(plain, mode === 'research' ? 0 : 1)
+      assert.equal(research, mode === 'research' ? 1 : 0)
+    } finally { h.cleanup() }
+  }
 })

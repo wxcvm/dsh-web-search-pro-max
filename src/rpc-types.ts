@@ -15,7 +15,7 @@ import type { OverlayView } from './overlay-types.ts'
 import type { PendingRestart } from './restart.ts'
 
 /** The channel prefix this plugin registers with the Host transport (Browser registers `/dsh-browser-assets` the same way). */
-export const RPC_CHANNEL = '/dsh-web-search-pro'
+export const RPC_CHANNEL = '/dsh-web-search-pro-max'
 
 /** `status`: readiness by source route id and by the backend legs of each platform chain (`<platform>/<backend>`). */
 export interface StatusView {

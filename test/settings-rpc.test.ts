@@ -96,7 +96,7 @@ test('the handler is registered on the Host transport under the plugin\'s own ch
   assert.deepEqual(injected, [['connection', 'webServer']])
   assert.deepEqual(channels, [RPC_CHANNEL])
   assert.ok(ownerHasWebServer, 'the channel is mounted through a derived context that owns webServer')
-  assert.equal(RPC_CHANNEL, '/dsh-web-search-pro')
+  assert.equal(RPC_CHANNEL, '/dsh-web-search-pro-max')
   assert.match(effectName, /RPC channel/)
 })
 

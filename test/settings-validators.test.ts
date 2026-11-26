@@ -246,12 +246,12 @@ test('the client module graph imports no Node module and no server-only module',
   }
   visit(resolve(root, 'client/index.ts'))
   const external = new Map<string, string[]>()
-  for (const [file, specs] of seen) for (const spec of specs.filter(spec => !spec.startsWith('.'))) external.set(spec, [...external.get(spec) ?? [], file.slice(root.length + 1)])
+  for (const [file, specs] of seen) for (const spec of specs.filter(spec => !spec.startsWith('.'))) external.set(spec, [...external.get(spec) ?? [], file.slice(root.length + 1).replace(/\\/g, '/')])
   const allowed = new Set(['react', 'react/jsx-runtime', 'react-dom', 'react-dom/client', '@deepseek-ai/cordis', '@deepseek-ai/dsh-client-store', '@deepseek-ai/dsh-client-ui-slots', '@deepseek-ai/dsh-client-ui-primitives'])
   const offenders = [...external].filter(([spec]) => !allowed.has(spec)).map(([spec, files]) => `${spec} <- ${files.join(', ')}`)
   assert.deepEqual(offenders, [])
   // The shared pure modules the card depends on are in the graph, so this test cannot pass by walking nothing.
-  const files = [...seen.keys()].map(file => file.slice(root.length + 1))
+  const files = [...seen.keys()].map(file => file.slice(root.length + 1).replace(/\\/g, '/'))
   for (const expected of ['pipeline/rubrics-spec.ts', 'pipeline/judges/providers-spec.ts', 'pipeline/judges/calibration-spec.ts', 'pipeline/budget-spec.ts', 'pipeline/coverage.ts', 'config-enums.ts', 'providers/keyed-meta.ts']) assert.ok(files.includes(expected), expected)
   for (const forbidden of ['config.ts', 'pipeline/rubrics.ts', 'pipeline/ledger.ts', 'pipeline/judges/providers.ts', 'pipeline/judges/calibration.ts', 'providers/keyed.ts', 'store.ts']) assert.ok(!files.includes(forbidden), forbidden)
 })

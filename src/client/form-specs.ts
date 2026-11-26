@@ -213,7 +213,7 @@ const path = (spec: FieldSpec, root: RootKey, at: readonly string[], extra: Part
 // ── defaults the card shows when the Host section carries none (pinned to config.ts by a test) ──
 
 export const DEFAULTS = {
-  evidence: { autoProviders: true, sourcePolicy: 'default', maxRounds: 2, maxQueries: 4, hybridBorderline: false, maxJevQuestions: 64, scorer: 'rule', jevMode: 'off' },
+  evidence: { autoProviders: true, sourcePolicy: 'anonymous-only', maxRounds: 2, maxQueries: 4, hybridBorderline: false, maxJevQuestions: 64, scorer: 'rule', jevMode: 'off' },
   judge: { allowLlm: false },
   coverage: { mode: 'off' },
   provider: { evidence: 'auto', deadlineMs: 25_000 },

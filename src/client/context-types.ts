@@ -9,7 +9,7 @@ import type { zh } from './locales.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
-    'web-search-pro.card': keyof typeof zh
+    'web-search-pro-max.card': keyof typeof zh
   }
 }
 

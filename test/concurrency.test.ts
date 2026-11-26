@@ -24,7 +24,7 @@ function deferred<T = void>() {
 
 const tick = (ms = 5) => new Promise(resolve => setTimeout(resolve, ms))
 
-function harness(opts: { engines?: string[]; busyTimeoutMs?: number; parallel?: boolean } = {}) {
+function harness(opts: { engines?: string[]; busyTimeoutMs?: number; parallel?: boolean; providerMode?: 'fast' | 'smart' } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-web-concurrency-'))
   const dbPath = path.join(dir, 'store.db')
   const store = new Store(dbPath, { ...opts.busyTimeoutMs !== undefined ? { busyTimeoutMs: opts.busyTimeoutMs } : {}, onDiagnostic: () => {} })
@@ -32,6 +32,7 @@ function harness(opts: { engines?: string[]; busyTimeoutMs?: number; parallel?: 
     memoryCacheEntries: 8, ttlSeconds: 60, engines: opts.engines ?? ['e1', 'e2'], rrfConstant: 60,
     freshnessBoost: 0, freshnessDays: 30, authorityBoost: 0, authorityDomains: [],
     searchMaxResults: 5, parallelEngines: opts.parallel ?? false,
+    ...opts.providerMode ? { provider: { evidence: opts.providerMode } } : {},
     exaApiKeyEnv: 'EXA_API_KEY', jinaApiKeyEnv: 'JINA_API_KEY', githubTokenEnv: 'GITHUB_TOKEN',
     enableCliBackends: false, opencliEnabled: false, agentReachEnabled: false,
     playwright: { enabled: false },
@@ -626,4 +627,17 @@ test('C9: fetch reports truncated when text hit maxChars, on live and cached pat
     const small = await fetchSvc.fetchPage('https://ex.test/short', opts)
     assert.equal(small.truncated, undefined)
   } finally { h.cleanup() }
+})
+
+
+test('native provider fast/smart settings override legacy parallel preference', async () => {
+  for (const mode of ['fast', 'smart'] as const) {
+    const h = harness({ engines: ['e1', 'e2'], parallel: mode === 'fast', providerMode: mode })
+    const calls: string[] = []
+    for (const id of ['e1', 'e2']) h.engine(id, async () => { calls.push(id); return { sources: sources(2) } })
+    try {
+      await h.router.searchAsProvider({ query: 'mode ' + mode, maxResults: 2 } as never)
+      assert.deepEqual(calls, mode === 'fast' ? ['e1'] : ['e1', 'e2'])
+    } finally { h.cleanup() }
+  }
 })
