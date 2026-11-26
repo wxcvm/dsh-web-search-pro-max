@@ -33,29 +33,29 @@
 
 **DSH CLI**（安装后重启 profile）：
 
-\`\`\`bash
+```bash
 dsh plugin --profile web add https://github.com/wxcvm/dsh-web-search-pro-max/releases/download/v0.3.0-alpha.1/dsh-web-search-pro-max.tgz
 dsh --profile web
-\`\`\`
+```
 
 **DSH Desktop**：打开**插件**页 → **Add plugin**，将上面的完整 .tgz Release 地址粘贴到输入框并安装。选择 tarball 地址即可，不需要选择 npm Registry。
 
 **更新**：非官方插件按 Harness 的安装方式卸载后重新安装。先移除旧版本，再将地址中的版本标签替换为新 Release 的版本：
 
-\`\`\`bash
+```bash
 dsh plugin --profile web remove dsh-web-search-pro-max
 # 将下面 URL 中的版本替换为新版本，例如 v0.3.0-alpha.2
 dsh plugin --profile web add https://github.com/wxcvm/dsh-web-search-pro-max/releases/download/v0.3.0-alpha.1/dsh-web-search-pro-max.tgz
 dsh --profile web
-\`\`\`
+```
 
 Desktop 用户在插件页卸载旧版，再用新版本 Release 地址安装。不要同时启用上游 dsh-web-search-pro 与 Max，两者工具名称相同。
 
 **开发者安装 GitHub 源码**（会在本机执行构建脚本，需要在 profile 的 pnpm-workspace.yaml 中授权 allowBuilds；普通用户优先使用上面的预构建 tarball）：
 
-\`\`\`bash
+```bash
 dsh plugin --profile web add github:wxcvm/dsh-web-search-pro-max#v0.3.0-alpha.1
-\`\`\`
+```
 
 ## 第一次使用
 

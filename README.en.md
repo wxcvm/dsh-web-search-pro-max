@@ -35,29 +35,29 @@ Current preview: **0.3.0-alpha.1**
 
 **DSH CLI** (restart the profile after installation):
 
-\`\`\`bash
+```bash
 dsh plugin --profile web add https://github.com/wxcvm/dsh-web-search-pro-max/releases/download/v0.3.0-alpha.1/dsh-web-search-pro-max.tgz
 dsh --profile web
-\`\`\`
+```
 
 **DSH Desktop**: open **Plugins** → **Add plugin**, paste the full GitHub Release .tgz URL above, and install it. Choose the tarball URL; no npm registry is needed.
 
 **Update**: Harness upgrades third-party plugins by uninstalling and reinstalling them. Remove the old version, then replace the version tag in the URL with the new release:
 
-\`\`\`bash
+```bash
 dsh plugin --profile web remove dsh-web-search-pro-max
 # Replace the version in this URL with the new release, e.g. v0.3.0-alpha.2
 dsh plugin --profile web add https://github.com/wxcvm/dsh-web-search-pro-max/releases/download/v0.3.0-alpha.1/dsh-web-search-pro-max.tgz
 dsh --profile web
-\`\`\`
+```
 
 Desktop users should uninstall the old version in the Plugins page and install the new release URL. Do not enable upstream dsh-web-search-pro and Max together; their tool names overlap.
 
 **Developer source install** (runs the build script on the local machine and requires an allowBuilds grant in the profile's pnpm-workspace.yaml; regular users should use the prebuilt tarball above):
 
-\`\`\`bash
+```bash
 dsh plugin --profile web add github:wxcvm/dsh-web-search-pro-max#v0.3.0-alpha.1
-\`\`\`
+```
 
 ## First use
 

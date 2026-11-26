@@ -35,11 +35,11 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          dest: \${{ runner.temp }}/setup-pnpm
+          dest: ${{ runner.temp }}/setup-pnpm
 
       - uses: actions/setup-node@v6
         with:
-          node-version: \${{ env.PRIMARY_NODE_VERSION }}
+          node-version: ${{ env.PRIMARY_NODE_VERSION }}
           cache: pnpm
 
       - name: Install (immutable)
@@ -48,7 +48,7 @@ jobs:
       - name: Verify release tag and package version
         id: version
         env:
-          REQUESTED_TAG: \${{ inputs.tag || github.ref_name }}
+          REQUESTED_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" && "$GITHUB_REF" != "refs/heads/master" ]]; then
             echo "::error::Manual releases must be dispatched from master."
@@ -59,7 +59,7 @@ jobs:
             echo "::error::Release tag must start with v."
             exit 1
           fi
-          tag_version="\${tag#v}"
+          tag_version="${tag#v}"
           pkg_version=$(node -p "require('./package.json').version")
           if [[ "$tag_version" != "$pkg_version" ]]; then
             echo "::error::Tag $tag does not match package.json version $pkg_version."
@@ -86,10 +86,10 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: \${{ steps.version.outputs.tag }}
+          tag_name: ${{ steps.version.outputs.tag }}
           target_commitish: master
-          name: Web Search Pro Max \${{ steps.version.outputs.tag }}
+          name: Web Search Pro Max ${{ steps.version.outputs.tag }}
           files: dist/dsh-web-search-pro-max.tgz
           fail_on_unmatched_files: true
           generate_release_notes: true
-          prerelease: \${{ contains(steps.version.outputs.tag, '-') }}
+          prerelease: ${{ contains(steps.version.outputs.tag, '-') }}
