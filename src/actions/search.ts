@@ -71,10 +71,11 @@ export const SEARCH_ACTIONS: ActionDef[] = [
   {
     name: 'search.run',
     group: 'search',
-    summary: 'Search the web. With task or profile it returns an evidence pack (only the passages that answer your needs, plus gaps); otherwise a ranked source list. platform searches one platform instead.',
+    summary: 'Search the web. Choose fast (ordered fallback), smart (parallel fusion), or research (evidence pack). With no mode, task/profile still selects evidence; platform searches one platform instead.',
     notes: 'Prefer evidence mode: pass task (one sentence) and optionally profile/needs/constraints. Read gaps before concluding something is absent; coverage is heuristic. Use 1-2 sources (see search.recommend), never all.',
     params: {
       query: { type: 'string', description: 'The search query. Required, except platform=rss with url.' },
+      mode: { type: 'string', enum: ['fast', 'smart', 'research'], description: 'Optional search mode: fast = ordered fallback; smart = bounded parallel fusion; research = evidence pack. Omit for existing automatic behavior. With a platform, fast/research use that platform; smart requires web engines.' },
       task: { type: 'string', description: 'Evidence mode: your goal in one short sentence (not the chat); switches to an evidence pack.' },
       profile: { type: 'string', description: 'Evidence mode: docs_code, news_fact, academic, experience, compare or general; selects sources (inferred if omitted).' },
       needs: { type: 'string', description: 'Evidence mode: sub-questions separated by ";" (or a JSON array string); default the task.' },
@@ -123,7 +124,10 @@ export const SEARCH_ACTIONS: ActionDef[] = [
       const registry = ctx.router.registry ?? defaultProviderRegistry
       const evidenceFields = EVIDENCE_FIELDS.filter(key => args[key] !== undefined)
       // Evidence mode: task or profile (any evidence field once a platform is named).
-      const evidenceMode = Boolean(args.task || args.profile || (args.platform && evidenceFields.length))
+      const evidenceMode = args.mode === 'research' || Boolean(args.task || args.profile || (args.platform && evidenceFields.length))
+      if ((args.mode === 'fast' || args.mode === 'smart') && evidenceFields.length) throw new ActionArgError('fast/smart mode cannot be combined with evidence fields', 'Use mode=research or omit mode.')
+      if (args.mode === 'smart' && args.platform) throw new ActionArgError('smart mode cannot be combined with platform', 'Use engines for fusion or choose fast/research for a single platform.')
+      if ((args.mode === 'fast' && args.multi === true) || (args.mode === 'smart' && args.multi === false)) throw new ActionArgError('multi conflicts with the selected search mode', 'Omit multi when choosing a mode.')
       const runEvidence = async (query: string, extra: { engines?: string[]; platform?: { id: string; url?: string; authProfile?: string; rulePack?: string } }) => {
         const out = await ctx.evidence().search({
           query,
@@ -161,14 +165,14 @@ export const SEARCH_ACTIONS: ActionDef[] = [
       if (!args.query) throw new ActionArgError('query is required', 'Pass query, or platform=rss with url.')
       // Ids come from the provider registry: aliases and namespaced ids (ddg, builtin:ddg) are accepted, unknown ones list what exists.
       const engines = args.engines ? registry.validate(args.engines.split(',').map((s: string) => s.trim()).filter(Boolean)) : undefined
-      if (args.task || args.profile) return runEvidence(args.query, { ...engines ? { engines } : {} })
+      if (evidenceMode) return runEvidence(args.query, { ...engines ? { engines } : {} })
       const hasExa = EXA_FIELDS.some(key => args[key])
       const result = await ctx.router.search({
         query: args.query,
         ...engines ? { engines } : {},
         count: args.count ?? cfg.searchMaxResults,
         fresh: args.fresh ?? false,
-        multi: args.multi ?? cfg.parallelEngines,
+        multi: args.mode === 'fast' ? false : args.mode === 'smart' ? true : args.multi ?? cfg.parallelEngines,
         signal: ctx.signal,
         ...hasExa ? { exa: {
           ...args.exaType ? { type: args.exaType as 'instant' | 'fast' | 'auto' | 'deep-lite' | 'deep' | 'deep-reasoning' } : {},

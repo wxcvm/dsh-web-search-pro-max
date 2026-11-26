@@ -368,3 +368,31 @@ test('evidence.rubrics: the active rubric id+version is recorded in stats, shado
     assert.deepEqual(out.notes.filter((n: string) => /rubric/.test(n)), [])
   } finally { rule.cleanup() }
 })
+
+
+test('explicit fast and smart modes select the existing ordered and fusion routes', async () => {
+  const h = harness({ parallelEngines: true })
+  const modes: boolean[] = []
+  try {
+    registerTools({
+      ctx: { tools: { register: (d: any) => h.definitions.set(d.name, d) } } as any, config: h.config, dynamic: () => h.config, store: h.store,
+      router: { search: async (options: any) => { modes.push(options.multi); return { sources: [], engine: 'ddg', enginesTried: ['ddg'], fromCache: false } } } as any, fetch: {} as any, browser: {} as any,
+    })
+    await callAction(h.definitions, 'search.run', { query: 'q', mode: 'fast' })
+    await callAction(h.definitions, 'search.run', { query: 'q', mode: 'smart' })
+    await callAction(h.definitions, 'search.run', { query: 'q' })
+    assert.deepEqual(modes, [false, true, true])
+    await assert.rejects(() => callAction(h.definitions, 'search.run', { query: 'q', mode: 'fast', multi: true }), /multi conflicts/)
+    await assert.rejects(() => callAction(h.definitions, 'search.run', { query: 'q', mode: 'smart', task: 'research' }), /evidence fields/)
+  } finally { h.cleanup() }
+})
+
+test('research mode selects evidence without requiring task or profile', async () => {
+  const h = evidenceHarness()
+  try {
+    const out = await h.run({ query: 'node:sqlite busy timeout', mode: 'research' })
+    assert.match(out.resultId, /^r_[0-9a-f]{10}$/)
+    assertFits(out, RUN_SCHEMA)
+    assert.ok(h.calls.length > 0)
+  } finally { h.cleanup() }
+})

@@ -11,3 +11,7 @@ Baseline: upstream 0.2.4 (40ee20b3393591801266bbb676b725a1d7b1962f).
 - P2: fast/smart/research modes, evidence quality, settings/diagnostics, optional MCP and CLI.
 
 Release gates: package build, typecheck, existing tests, benchmark tests, install/disable/re-enable smoke test, no unintended paid requests. Publish only the Max package with authorized credentials. No live-search or Alpha compatibility claims without actual results.
+
+## Search modes (initial implementation)
+
+`search.run` accepts optional `mode`: `fast` uses the existing ordered fallback; `smart` uses bounded parallel fusion; `research` invokes the evidence pipeline even without a task or profile. No mode preserves the existing behavior. Mode selection in the native host provider and settings, adaptive budgets, and early return remain future work. These modes are not latency guarantees.
