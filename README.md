@@ -27,7 +27,9 @@
 
 历史版本的兼容表见 [CHANGELOG](./CHANGELOG.md#兼容与发布通道历史)，peer 范围的写法见 [兼容范围](https://github.com/anweat/dsh-web-search-pro/blob/master/docs/guide/compatibility.md)。
 
-## 安装与更新（GitHub Release，无需 npm）
+## 安装
+
+### 安装与更新（GitHub Release，无需 npm）
 
 当前预览版本：**0.3.0-alpha.1**
 

@@ -29,7 +29,9 @@ An enhanced web search plugin for [DeepSeek Harness](https://github.com/deepseek
 
 The compatibility table of earlier versions is in the [CHANGELOG](./CHANGELOG.md#兼容与发布通道历史); how the peer range is written is explained in [Compatibility](https://github.com/anweat/dsh-web-search-pro/blob/master/docs/guide/compatibility.md) (Chinese).
 
-## Install and update (GitHub Releases, no npm)
+## Installation
+
+### Install and update (GitHub Releases, no npm)
 
 Current preview: **0.3.0-alpha.1**
 
