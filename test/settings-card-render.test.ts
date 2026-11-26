@@ -32,7 +32,7 @@ before(async () => {
   // No skip on failure: the card is part of what ships, so an environment that cannot bundle it must fail loudly.
   {
     const fromTsdown = createRequire(require.resolve('tsdown/package.json'))
-    const rolldown = await import(fromTsdown.resolve('rolldown'))
+    const rolldown = await import(pathToFileURL(fromTsdown.resolve('rolldown')).href)
     const bundle = await rolldown.rolldown({
       input: new URL('./ui/ssr-entry.tsx', import.meta.url).pathname, platform: 'node', logLevel: 'silent',
       resolve: { alias: { '@deepseek-ai/dsh-client-ui-primitives': new URL('./ui/primitives-stub.ts', import.meta.url).pathname } },

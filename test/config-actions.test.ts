@@ -193,7 +193,7 @@ test('the overlay file lives beside dbPath and is created 0600 at the first writ
     assert.equal(fs.existsSync(h.overlayFile), false, 'no file until something is overridden')
     await h.run('config.set_order', { engines: ['bing'], reason: 'create the file' })
     assert.equal(h.overlayFile, path.join(path.dirname(h.config.dbPath), 'overlay.json'))
-    assert.equal(fs.statSync(h.overlayFile).mode & 0o777, 0o600)
+    if (process.platform !== 'win32') assert.equal(fs.statSync(h.overlayFile).mode & 0o777, 0o600)
     const raw = JSON.parse(fs.readFileSync(h.overlayFile, 'utf8'))
     assert.equal(raw.audit[0].sessionId, undefined, 'no session in this harness: none recorded')
     // A call from a session records it.
