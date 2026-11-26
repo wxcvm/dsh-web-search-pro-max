@@ -627,3 +627,16 @@ test('C9: fetch reports truncated when text hit maxChars, on live and cached pat
     assert.equal(small.truncated, undefined)
   } finally { h.cleanup() }
 })
+
+
+test('native provider fast/smart settings override legacy parallel preference', async () => {
+  for (const mode of ['fast', 'smart'] as const) {
+    const h = harness({ engines: ['e1', 'e2'], parallelEngines: mode === 'fast', provider: { evidence: mode } })
+    const calls: string[] = []
+    for (const id of ['e1', 'e2']) h.engine(id, async () => { calls.push(id); return { sources: sources(2) } })
+    try {
+      await h.router.searchAsProvider({ query: 'mode ' + mode, maxResults: 2 } as never)
+      assert.deepEqual(calls, mode === 'fast' ? ['e1'] : ['e1', 'e2'])
+    } finally { h.cleanup() }
+  }
+})

@@ -1034,7 +1034,7 @@ export class SearchRouter {
       query: request.query,
       count: request.maxResults ?? cfg.searchMaxResults,
       fresh: false,
-      multi: cfg.provider.evidence === 'fast' ? false : cfg.provider.evidence === 'smart' ? true : cfg.parallelEngines,
+      multi: cfg.provider?.evidence === 'fast' ? false : cfg.provider?.evidence === 'smart' ? true : cfg.parallelEngines,
       signal,
       skipSeam: true,
     })
