@@ -41,7 +41,7 @@ import { OverlayStore, overlayFileFor } from './overlay.ts'
 import { liveFiberConfig } from './fiber-config.ts'
 import { pendingRestart, restartValues } from './restart.ts'
 
-export const name = 'web-search-pro'
+export const name = 'web-search-pro-max'
 // `browser` (dsh-browser) is deliberately NOT injected: Cordis 4.0.4 treats every
 // `inject` entry as required (the fiber stays PENDING until it exists) and has no
 // optional form. It is read per call with `ctx.get('browser')` instead.
@@ -151,7 +151,7 @@ export function apply(ctx: Context, config: Config): void {
   // 6. System prompt guidance; the text thunk runs at assembly time so the
   //    browser_* paragraph tracks the browser service's current presence.
   ctx.systemPrompt.section({
-    name: 'tool:web-search-pro',
+    name: 'tool:web-search-pro-max',
     order: 112,
     text: () => buildPromptText(usableBrowser(getBrowser()) !== undefined),
   })

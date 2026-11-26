@@ -6,8 +6,8 @@
  */
 
 export const zh = {
-  tab: 'Web Search Pro',
-  title: 'Web Search Pro',
+  tab: 'Web Search Pro Max',
+  title: 'Web Search Pro Max',
   description: '搜索引擎、来源与 Key、评分模型、读取与缓存、平台规则',
   lang: 'zh',
   readOnly: '当前设置文档为只读，无法保存修改。',
@@ -348,8 +348,8 @@ export const zh = {
 } as const
 
 export const en = {
-  tab: 'Web Search Pro',
-  title: 'Web Search Pro',
+  tab: 'Web Search Pro Max',
+  title: 'Web Search Pro Max',
   description: 'Search engines, sources and keys, scoring model, reading and cache, platform rules',
   lang: 'en',
   readOnly: 'The settings document is read-only, so changes cannot be saved.',

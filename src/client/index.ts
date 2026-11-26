@@ -13,9 +13,9 @@ import { en, zh } from './locales.ts'
 import { ensureStyles } from './styles.ts'
 import type { TrialRequest } from '../rpc-types.ts'
 
-export const name = 'web-search-pro-client'
+export const name = 'web-search-pro-max-client'
 export const inject = ['slots', 'locale', 'remote', 'remote.credentials', 'configForms']
-export const NS = 'web-search-pro.card'
+export const NS = 'web-search-pro-max.card'
 
 export type SettingsCardProps = PropsLocale<typeof NS> & {
   view: 'summary' | 'page'
@@ -39,19 +39,19 @@ export type SettingsCardProps = PropsLocale<typeof NS> & {
 }
 export function apply(ctx: Context): void {
   ensureStyles()
-  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'web-search-pro: settings dictionaries')
+  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'web-search-pro-max: settings dictionaries')
 
-  const form = ctx.configForms.get<Record<string, unknown>>('web-search-pro')
+  const form = ctx.configForms.get<Record<string, unknown>>('web-search-pro-max')
   const controller = new WebSearchSettingsController(form, ctx)
-  ctx.effect(() => () => { controller.dispose() }, 'web-search-pro: settings controller')
+  ctx.effect(() => () => { controller.dispose() }, 'web-search-pro-max: settings controller')
 
   // External bundles contribute configuration to their own Plugins detail
   // page, and only while the Host serves this entry's Config schema.
-  ctx.effect(() => ctx.configForms.whileServed(['web-search-pro'], () =>
+  ctx.effect(() => ctx.configForms.whileServed(['web-search-pro-max'], () =>
     ctx.slots.inject('plugins.bundle.config', () => ctx.slots.register({
       name: 'plugins.bundle.config',
-      key: 'dsh-web-search-pro',
+      key: 'dsh-web-search-pro-max',
       locale: NS,
       inject: () => controller.inject(),
-    }, SettingsCard))), 'web-search-pro: bundle configuration')
+    }, SettingsCard))), 'web-search-pro-max: bundle configuration')
 }

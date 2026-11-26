@@ -270,7 +270,7 @@ export interface Config {
   authorityBoost: number
   /** Extra authority domains (beyond the built-in .edu/.gov/.org and the curated list). */
   authorityDomains: string[]
-  /** SQLite database path; defaults to $DSH_HOME/data/web-search-pro/store.db */
+  /** SQLite database path; defaults to $DSH_HOME/data/web-search-pro-max/store.db */
   dbPath?: string
   verbose: boolean
 }
@@ -405,7 +405,7 @@ export const Config = z.object({
     authProfile: z.string(),
     rulePack: z.string(),
   })).volatile(),
-  providerId: z.string().default('web-search-pro').volatile(),
+  providerId: z.string().default('web-search-pro-max').volatile(),
   registerProvider: z.boolean().default(false).volatile(),
   provider: z.object({
     evidence: z.string().default('auto').volatile(),
@@ -465,7 +465,7 @@ function vOr<T>(value: T | { get(): T } | undefined, fallback: T): T {
 /** Default database path under the harness home. */
 export function defaultDbPath(): string {
   const home = process.env.DSH_HOME ?? path.join(os.homedir(), '.dsh')
-  return path.join(home, 'data', 'web-search-pro', 'store.db')
+  return path.join(home, 'data', 'web-search-pro-max', 'store.db')
 }
 
 export { normalizeJudge, normalizeRubrics, normalizeCoverage } from './config-fillers.ts'
@@ -519,7 +519,7 @@ export function resolveConfig(config: Config): ResolvedConfig {
     enableCliBackends: vOr(config.enableCliBackends, true) as boolean,
     opencliEnabled: vOr(config.opencliEnabled, true) as boolean,
     agentReachEnabled: vOr(config.agentReachEnabled, true) as boolean,
-    providerId: vOr(config.providerId, 'web-search-pro') as string,
+    providerId: vOr(config.providerId, 'web-search-pro-max') as string,
     registerProvider: vOr(config.registerProvider, false) as boolean,
     provider: {
       evidence: resolveProviderEvidence(vOr(pv.evidence as unknown, 'auto')),

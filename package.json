@@ -1,7 +1,7 @@
 {
-  "name": "dsh-web-search-pro",
-  "version": "0.2.4",
-  "description": "Enhanced, persistent web search plugin for DeepSeek Harness — multi-engine routing (DeepSeek/Exa/DDG/Bing/Jina + GitHub/B站/YouTube/V2EX/小红书/Twitter/Reddit/RSS), SQLite+LRU cache, userscript-style extraction, and Playwright rendering.",
+  "name": "dsh-web-search-pro-max",
+  "version": "0.3.0-alpha.1",
+  "description": "Web Search Pro Max — independent fork of Web Search Pro for DeepSeek Harness",
   "license": "MIT",
   "type": "module",
   "main": "lib/index.js",
@@ -177,7 +177,7 @@
   "packageManager": "pnpm@11.7.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/anweat/dsh-web-search-pro.git"
+    "url": "git+https://github.com/wxcvm/dsh-web-search-pro-max.git"
   },
   "keywords": [
     "dsh",
