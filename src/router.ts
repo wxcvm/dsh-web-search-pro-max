@@ -876,11 +876,11 @@ export class SearchRouter {
       // Every engine goes through the registry (probe, cooldown, quality gate,
       // attempts) in parallel; failures of one never cancel the others.
       const input = { query, count, signal, skipSeam: opts.skipSeam ?? false, ...opts.exa ? { options: { exa: opts.exa } } : {} }
-      const results = await mapConcurrent(ids, SEARCH_CONCURRENCY, async (id): Promise<PromiseSettledResult<Awaited<ReturnType<typeof this.backends.runSelected>>>> => {
+      const results = await mapConcurrent(ids, SEARCH_CONCURRENCY, async (id) => {
         try {
           signal?.throwIfAborted()
-          return { status: 'fulfilled', value: await this.backends.runSelected(input, { preferred: [id], ...signal ? { signal } : {} }) }
-        } catch (reason) { return { status: 'rejected', reason } }
+          return { status: 'fulfilled' as const, value: await this.backends.runSelected(input, { preferred: [id], ...signal ? { signal } : {} }) }
+        } catch (reason) { return { status: 'rejected' as const, reason } }
       })
       if (signal?.aborted) throw signal.reason ?? new DOMException('This operation was aborted', 'AbortError')
       enginesTried.push(...ids)
