@@ -1,4 +1,4 @@
-> **Web Search Pro Max（开发预览）**：本仓库是 [anweat/dsh-web-search-pro](https://github.com/anweat/dsh-web-search-pro) 的独立 MIT fork。包名 `dsh-web-search-pro-max`，配置 ID / 默认 Provider ID `web-search-pro-max`。尚未发布 npm 版本。默认 `anonymous-only`，自动搜索排除需 Key 或费用不明确的来源；明确指定来源仍可能产生费用。不要与上游同时启用，工具名称仍共用。下方为上游参考文档，安装指令不代表 Max 已发布。
+> **Web Search Pro Max（开发预览）**：本仓库是 [anweat/dsh-web-search-pro](https://github.com/anweat/dsh-web-search-pro) 的独立 MIT fork。包名 `dsh-web-search-pro-max`，配置 ID / 默认 Provider ID `web-search-pro-max`。不通过 npm registry 分发；仅通过 GitHub Releases 提供预构建安装包。默认 `anonymous-only`，自动搜索排除需 Key 或费用不明确的来源；明确指定来源仍可能产生费用。不要与上游同时启用，工具名称仍共用。下方沿用上游功能说明；Max 的安装与更新以本仓库 GitHub Releases 为准。
 
 # dsh-web-search-pro
 
@@ -27,23 +27,35 @@
 
 历史版本的兼容表见 [CHANGELOG](./CHANGELOG.md#兼容与发布通道历史)，peer 范围的写法见 [兼容范围](https://github.com/anweat/dsh-web-search-pro/blob/master/docs/guide/compatibility.md)。
 
-## 安装
+## 安装与更新（GitHub Release，无需 npm）
 
-**DSH CLI**（装完重启 profile）：
+当前预览版本：**0.3.0-alpha.1**
 
-```bash
-# 只要搜索：
-dsh plugin --profile web add dsh-web-search-pro@0.2.4
-# 还要读取渲染页 / 浏览器平台：连同可选的浏览器插件一起装（两者都必须是 profile 的直接依赖）
-dsh plugin --profile web add @anweat/dsh-browser@0.2.3 dsh-web-search-pro@0.2.4
+**DSH CLI**（安装后重启 profile）：
+
+\`\`\`bash
+dsh plugin --profile web add https://github.com/wxcvm/dsh-web-search-pro-max/releases/download/v0.3.0-alpha.1/dsh-web-search-pro-max.tgz
 dsh --profile web
-```
+\`\`\`
 
-**DSH Desktop**：Desktop 的 profile 由应用管理，CLI 不能操作它。打开**插件**页 → **Add plugin**，填包名（可带版本，如 `dsh-web-search-pro@0.2.4`，写法同上面 `add` 后面那段）→ Install；对话框里还能选 **Registry**。非官方插件升级 = 先卸载再重装；国内镜像（如 npmmirror）可能晚同步，装不到新版本时把 Registry 换成 `https://registry.npmjs.org`。
+**DSH Desktop**：打开**插件**页 → **Add plugin**，将上面的完整 .tgz Release 地址粘贴到输入框并安装。选择 tarball 地址即可，不需要选择 npm Registry。
 
-**本地目录 / tarball（开发用）**：`dsh plugin --profile web add ../dsh-browser ./dsh-web-search-pro`。
+**更新**：非官方插件按 Harness 的安装方式卸载后重新安装。先移除旧版本，再将地址中的版本标签替换为新 Release 的版本：
 
-更多（新用户第一次安装的注意事项、排障）见 [安装与首次使用](https://github.com/anweat/dsh-web-search-pro/blob/master/docs/guide/install.md)；升级见 [CHANGELOG](./CHANGELOG.md#从旧版本升级)。
+\`\`\`bash
+dsh plugin --profile web remove dsh-web-search-pro-max
+# 将下面 URL 中的版本替换为新版本，例如 v0.3.0-alpha.2
+dsh plugin --profile web add https://github.com/wxcvm/dsh-web-search-pro-max/releases/download/v0.3.0-alpha.1/dsh-web-search-pro-max.tgz
+dsh --profile web
+\`\`\`
+
+Desktop 用户在插件页卸载旧版，再用新版本 Release 地址安装。不要同时启用上游 dsh-web-search-pro 与 Max，两者工具名称相同。
+
+**开发者安装 GitHub 源码**（会在本机执行构建脚本，需要在 profile 的 pnpm-workspace.yaml 中授权 allowBuilds；普通用户优先使用上面的预构建 tarball）：
+
+\`\`\`bash
+dsh plugin --profile web add github:wxcvm/dsh-web-search-pro-max#v0.3.0-alpha.1
+\`\`\`
 
 ## 第一次使用
 

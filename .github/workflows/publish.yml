@@ -1,92 +1,72 @@
-# Publish and release for dsh-web-search-pro-max. Tag builds release tarballs; npm publication is explicit.
-#
-# Modeled on the official deepseek-harness release.yml pattern:
-#   - pack runs WITHOUT registry credentials on every run — it builds, verifies
-#     the tag/version match, and uploads the exact tarball bytes;
-#   - publish is explicit: a manual dispatch from a v* tag with
-#     publish=true. It consumes the packed bytes (never a rebuild) and is the
-#     only step that can write to the npm registry;
-#   - publish runs are serialized so two versions cannot race dist-tags.
-#
-# One-time setup (package owner):
-#   npm package → Settings → Trusted publishing → GitHub Actions:
-#   owner wxcvm, repository dsh-web-search-pro-max, workflow publish.yml,
-#   environment npm-publish, with direct npm publish allowed.
-#
-# Trigger a release:
-#   git tag v0.1.0 && git push origin v0.1.0
-# or run the workflow manually with "publish" checked.
+# Build a precompiled package and attach it to a GitHub Release.
+# No npm publication, registry credentials, NPM_TOKEN, or npm account is required.
 
-name: Publish to npm
+name: GitHub Release
 
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
     inputs:
-      publish:
-        description: 'Publish to npm (must run from a v* tag). Leave unchecked for a dry-run pack.'
+      tag:
+        description: 'Release tag matching package.json, e.g. v0.3.0-alpha.1'
         required: true
-        type: boolean
-        default: false
+        type: string
 
 permissions:
-  contents: write        # create the GitHub Release
-  id-token: write        # npm provenance (sigstore OIDC)
+  contents: write
 
 concurrency:
-  # Pack runs per ref; publish is globally serialized (shared dist-tag state).
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: github-release
   cancel-in-progress: false
 
 env:
   PRIMARY_NODE_VERSION: '22'
 
 jobs:
-  pack:
-    name: Build and pack tarball
+  release:
+    name: Build, verify and attach prebuilt tarball
+    if: github.event_name == 'push' || github.ref == 'refs/heads/master'
     runs-on: ubuntu-24.04
-    outputs:
-      dist_tag: ${{ steps.version.outputs.dist_tag }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          persist-credentials: false
 
       - uses: pnpm/action-setup@v4
         with:
-          dest: ${{ runner.temp }}/setup-pnpm
+          dest: \${{ runner.temp }}/setup-pnpm
 
       - uses: actions/setup-node@v6
         with:
-          node-version: ${{ env.PRIMARY_NODE_VERSION }}
+          node-version: \${{ env.PRIMARY_NODE_VERSION }}
           cache: pnpm
 
       - name: Install (immutable)
         run: pnpm install --frozen-lockfile
 
-      - name: Verify release version
+      - name: Verify release tag and package version
         id: version
+        env:
+          REQUESTED_TAG: \${{ inputs.tag || github.ref_name }}
         run: |
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" && "$GITHUB_REF" != "refs/heads/master" ]]; then
+            echo "::error::Manual releases must be dispatched from master."
+            exit 1
+          fi
+          tag="$REQUESTED_TAG"
+          if [[ "$tag" != v* ]]; then
+            echo "::error::Release tag must start with v."
+            exit 1
+          fi
+          tag_version="\${tag#v}"
           pkg_version=$(node -p "require('./package.json').version")
-          echo "package.json version: $pkg_version"
-          # On a tag push, the tag must match package.json (v0.1.0 == 0.1.0).
-          if [[ "$GITHUB_REF_NAME" == v* ]]; then
-            tag_version="${GITHUB_REF_NAME#v}"
-            if [[ "$tag_version" != "$pkg_version" ]]; then
-              echo "::error::tag v$tag_version does not match package.json version $pkg_version" >&2
-              exit 1
-            fi
+          if [[ "$tag_version" != "$pkg_version" ]]; then
+            echo "::error::Tag $tag does not match package.json version $pkg_version."
+            exit 1
           fi
-          if [[ "$pkg_version" == *-* ]]; then
-            dist_tag=next
-          else
-            dist_tag=latest
-          fi
-          echo "npm dist-tag: $dist_tag"
-          echo "dist_tag=$dist_tag" >> "$GITHUB_OUTPUT"
-          echo "PKG_VERSION=$pkg_version" >> "$GITHUB_ENV"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Publishing GitHub Release $tag for package $pkg_version"
 
       - name: Verify release candidate
         run: pnpm verify
@@ -94,63 +74,22 @@ jobs:
       - name: Verify benchmark utilities
         run: pnpm bench:typecheck && pnpm bench:test
 
-      - name: Pack tarball
-        run: pnpm pack --pack-destination dist
+      - name: Pack prebuilt plugin
+        run: |
+          mkdir -p dist
+          pnpm pack --pack-destination dist
+          tarball=$(find dist -maxdepth 1 -name '*.tgz' -print -quit)
+          test -n "$tarball"
+          mv "$tarball" dist/dsh-web-search-pro-max.tgz
+          tar -tzf dist/dsh-web-search-pro-max.tgz
 
-      - name: Show tarball contents
-        run: tar -tzf dist/*.tgz
-
-      - uses: actions/upload-artifact@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: npm-tarball
-          path: dist/*.tgz
-          if-no-files-found: error
-          retention-days: 7
-
-  publish:
-    name: Publish to npm
-    if: github.event_name == 'workflow_dispatch' && inputs.publish && startsWith(github.ref, 'refs/tags/v')
-    needs: pack
-    runs-on: ubuntu-24.04
-    environment: npm-publish
-    concurrency:
-      group: Release-publish
-      cancel-in-progress: false
-    permissions:
-      contents: read
-      id-token: write    # npm trusted publishing and provenance
-    steps:
-      - uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.PRIMARY_NODE_VERSION }}
-          registry-url: https://registry.npmjs.org
-
-      - name: Install npm with trusted publishing support
-        run: npm install --global npm@^11.5.1
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: npm-tarball
-          path: dist
-
-      - name: Publish tarball
-        run: npm publish ./dist/*.tgz --provenance --access public --tag "${{ needs.pack.outputs.dist_tag }}"
-
-  release:
-    name: GitHub Release with tarball
-    if: github.event_name == 'push'   # v* tag pushes only
-    needs: pack
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: npm-tarball
-          path: dist
-
-      - uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*.tgz
+          tag_name: \${{ steps.version.outputs.tag }}
+          target_commitish: master
+          name: Web Search Pro Max \${{ steps.version.outputs.tag }}
+          files: dist/dsh-web-search-pro-max.tgz
+          fail_on_unmatched_files: true
           generate_release_notes: true
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          prerelease: \${{ contains(steps.version.outputs.tag, '-') }}

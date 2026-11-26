@@ -1,4 +1,4 @@
-> **Web Search Pro Max (development preview)** is an independent MIT fork of [anweat/dsh-web-search-pro](https://github.com/anweat/dsh-web-search-pro). Package `dsh-web-search-pro-max`; config and default provider ID `web-search-pro-max`. Not published to npm yet. Automatic search defaults to `anonymous-only`; explicitly selected sources may still incur charges. Do not enable both forks together: tool names are shared. The upstream documentation below is retained for reference.
+> **Web Search Pro Max (development preview)** is an independent MIT fork of [anweat/dsh-web-search-pro](https://github.com/anweat/dsh-web-search-pro). Package `dsh-web-search-pro-max`; config and default provider ID `web-search-pro-max`. Not distributed through the npm registry; prebuilt install archives are provided through GitHub Releases. Automatic search defaults to `anonymous-only`; explicitly selected sources may still incur charges. Do not enable both forks together: tool names are shared. The feature documentation below follows the upstream structure; install and update instructions for Max use this repository's GitHub Releases.
 
 # dsh-web-search-pro
 
@@ -29,23 +29,35 @@ An enhanced web search plugin for [DeepSeek Harness](https://github.com/deepseek
 
 The compatibility table of earlier versions is in the [CHANGELOG](./CHANGELOG.md#兼容与发布通道历史); how the peer range is written is explained in [Compatibility](https://github.com/anweat/dsh-web-search-pro/blob/master/docs/guide/compatibility.md) (Chinese).
 
-## Installation
+## Install and update (GitHub Releases, no npm)
 
-**DSH CLI** (restart the profile afterwards):
+Current preview: **0.3.0-alpha.1**
 
-```bash
-# Search only:
-dsh plugin --profile web add dsh-web-search-pro@0.2.4
-# Plus rendered pages / browser platforms: install the optional browser plugin together (both must be direct dependencies of the profile)
-dsh plugin --profile web add @anweat/dsh-browser@0.2.3 dsh-web-search-pro@0.2.4
+**DSH CLI** (restart the profile after installation):
+
+\`\`\`bash
+dsh plugin --profile web add https://github.com/wxcvm/dsh-web-search-pro-max/releases/download/v0.3.0-alpha.1/dsh-web-search-pro-max.tgz
 dsh --profile web
-```
+\`\`\`
 
-**DSH Desktop**: Desktop manages its profile itself and the CLI cannot operate it. Open the **Plugins** page, click **Add plugin**, enter the package name (a version may be appended, for example `dsh-web-search-pro@0.2.4`, the same text as after `add` above), then Install. The dialog also lets you pick a **Registry**. Upgrading a non-official plugin means uninstalling and reinstalling it. Mirrors such as npmmirror can lag the official registry by minutes to hours; if a new version cannot be installed, switch the Registry to `https://registry.npmjs.org`.
+**DSH Desktop**: open **Plugins** → **Add plugin**, paste the full GitHub Release .tgz URL above, and install it. Choose the tarball URL; no npm registry is needed.
 
-**Local directory / tarball (development)**: `dsh plugin --profile web add ../dsh-browser ./dsh-web-search-pro`.
+**Update**: Harness upgrades third-party plugins by uninstalling and reinstalling them. Remove the old version, then replace the version tag in the URL with the new release:
 
-More (first-install notes and troubleshooting) in [Install and first use](https://github.com/anweat/dsh-web-search-pro/blob/master/docs/guide/install.md) (Chinese); upgrading is covered in the [CHANGELOG](./CHANGELOG.md#从旧版本升级).
+\`\`\`bash
+dsh plugin --profile web remove dsh-web-search-pro-max
+# Replace the version in this URL with the new release, e.g. v0.3.0-alpha.2
+dsh plugin --profile web add https://github.com/wxcvm/dsh-web-search-pro-max/releases/download/v0.3.0-alpha.1/dsh-web-search-pro-max.tgz
+dsh --profile web
+\`\`\`
+
+Desktop users should uninstall the old version in the Plugins page and install the new release URL. Do not enable upstream dsh-web-search-pro and Max together; their tool names overlap.
+
+**Developer source install** (runs the build script on the local machine and requires an allowBuilds grant in the profile's pnpm-workspace.yaml; regular users should use the prebuilt tarball above):
+
+\`\`\`bash
+dsh plugin --profile web add github:wxcvm/dsh-web-search-pro-max#v0.3.0-alpha.1
+\`\`\`
 
 ## First use
 
