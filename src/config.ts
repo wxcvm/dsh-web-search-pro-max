@@ -109,7 +109,7 @@ export function resolveProviderEvidence(value: unknown): ProviderSettings['evide
 }
 
 export function resolveSourcePolicy(value: unknown): SourcePolicy {
-  const policy = value ?? 'default'
+  const policy = value ?? 'anonymous-only'
   if (typeof policy !== 'string' || !SOURCE_POLICIES.includes(policy as SourcePolicy)) throw new Error('evidence.sourcePolicy must be one of: ' + SOURCE_POLICIES.join(', '))
   return policy as SourcePolicy
 }
@@ -330,7 +330,7 @@ export const Config = z.object({
     hybridBorderline: z.boolean().default(false).volatile(),
     maxJevQuestions: z.number().default(64).volatile(),
     autoProviders: z.boolean().default(true).volatile(),
-    sourcePolicy: z.string().default('default').volatile(),
+    sourcePolicy: z.string().default('anonymous-only').volatile(),
     maxRounds: z.number().default(2).volatile(),
     maxQueries: z.number().default(4).volatile(),
     rubrics: z.dict(z.object({
@@ -540,7 +540,7 @@ export function resolveConfig(config: Config): ResolvedConfig {
       hybridBorderline: vOr(ev.hybridBorderline, false) as boolean,
       maxJevQuestions: vOr(ev.maxJevQuestions, 64) as number,
       autoProviders: vOr(ev.autoProviders, true) as boolean,
-      sourcePolicy: resolveSourcePolicy(vOr(ev.sourcePolicy as unknown, 'default')),
+      sourcePolicy: resolveSourcePolicy(vOr(ev.sourcePolicy as unknown, 'anonymous-only')),
       maxRounds: vOr(ev.maxRounds, 2) as number,
       maxQueries: vOr(ev.maxQueries, 4) as number,
       ...ev.rubrics !== undefined && v(ev.rubrics) ? { rubrics: normalizeRubrics(v(ev.rubrics)) as Record<string, RubricOverride> } : {},

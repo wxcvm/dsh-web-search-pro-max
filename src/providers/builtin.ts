@@ -55,7 +55,7 @@ export function builtinAdapters(): ProviderAdapter[] {
     adapter(descriptor({
       id: 'builtin:seam', label: 'DeepSeek 原生搜索 (ctx.web)', taskProfiles: ['general'],
       requirements: [{ kind: 'service', id: 'ctx.web', note: 'the host web capability' }],
-      costModel: { kind: 'unknown', note: 'decided by the host provider behind ctx.web' }, costTier: 'anonymous',
+      costModel: { kind: 'unknown', note: 'decided by the host provider behind ctx.web; not guaranteed free' }, costTier: 'paid',
     }), seamEngine, (env, ok) => ({ installation: 'not_required', credential: 'not_required', ...!ok ? { diagnosticCode: 'service_missing' } : {} })),
 
     adapter(descriptor({

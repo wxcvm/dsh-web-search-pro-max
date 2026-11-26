@@ -13,6 +13,8 @@ export interface SearchCacheInput {
   engines: readonly string[]
   count: number
   multi: boolean
+  /** Exclude host seam results when called by the native provider itself. */
+  skipSeam?: boolean
   exa?: Record<string, unknown>
   /** Auth profile / rule pack bindings of the platform providers in `engines` (absent when none applies, so existing keys are unchanged). */
   browser?: Record<string, { authProfile?: string; rulePack?: string }>
@@ -43,8 +45,8 @@ function fingerprint(kind: string, version: number, input: unknown): string {
 }
 
 export function createSearchCacheKey(input: SearchCacheInput): string {
-  const { count: _count, ...stable } = input
-  return fingerprint('search', SEARCH_CACHE_VERSION, { ...stable, query: input.query.trim().replace(/\s+/g, ' ').toLowerCase() })
+  const { count: _count, skipSeam, ...stable } = input
+  return fingerprint('search', SEARCH_CACHE_VERSION, { ...stable, ...skipSeam ? { skipSeam: true } : {}, query: input.query.trim().replace(/\s+/g, ' ').toLowerCase() })
 }
 
 /** True when a persisted cache key was minted with the current search version. */

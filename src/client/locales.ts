@@ -45,7 +45,7 @@ export const zh = {
   // sources
   strategyGroup: '来源策略', strategyNote: '顺序：调用里的 engines / platform 最优先 → 下面的“优先来源” → 你配置了 Key 的来源（“常用”的 DeepSeek 排最前）→ 匿名 / 免费默认。付费来源只在配置了 Key 才会用到。',
   sourcePolicy: '来源策略', sourcePolicyHint: '是否允许自动规划用需要 Key 的来源。', sourcePolicyHelp: 'default：按上述顺序。anonymous-only：即使配置了 Key，自动规划也绝不使用需要 Key、账号或登录的来源（调用里明确指定的仍可用）。',
-  optPolicyDefault: 'default · 按顺序（默认）', optPolicyAnonymousOnly: 'anonymous-only · 只用匿名来源',
+  optPolicyDefault: 'default · 按顺序', optPolicyAnonymousOnly: 'anonymous-only · 只用匿名来源（默认）',
   srcPriority: '优先来源', srcPriorityHint: '按顺序排最前的来源 id。', srcPriorityHelp: '仅限就绪且适合任务语言与 profile 的来源；例：deepseek, exa。留空 = 不指定。调用里的 engines 仍最优先。',
   srcDisabled: '停用来源', srcDisabledHint: '自动规划与默认引擎链都不再用它们。', srcDisabledHelp: '调用里明确指定的来源仍可用。想关掉按量计费的 DeepSeek 默认，就在这里写 deepseek。',
   sourcesListTitle: '需要 Key 或地址的来源', sourcesListHint: '点“编辑”设置 Key 引用名、Key、地址与请求额度；Key 写入 DSH Credentials，页面从不显示明文。',
@@ -382,7 +382,7 @@ export const en = {
   deepseekFetch: 'Read pages with DeepSeek Fetch', deepseekFetchHint: 'Off by default; billed per request.', deepseekFetchHelp: 'When on, read.fetch falls back to the DeepSeek Fetch API (billed $0.75 per 1,000 successful requests; empty results and failures are free) when Jina and a direct request found no content, before browser rendering; mode=deepseek asks for it explicitly. It uses the same key as DeepSeek Search.',
   strategyGroup: 'Ranking policy', strategyNote: 'Order: engines / platform in the call, then "Priority sources" below, then sources you configured a key for (DeepSeek, the common one, first), then the anonymous / free defaults. A paid source is used only once its key is configured.',
   sourcePolicy: 'Source policy', sourcePolicyHint: 'Whether automatic planning may use keyed sources.', sourcePolicyHelp: 'default follows the order above. anonymous-only: automatic planning never uses a source that needs a key, account or login, even a configured one (a source named in the call still runs).',
-  optPolicyDefault: 'default · in order (default)', optPolicyAnonymousOnly: 'anonymous-only · anonymous sources only',
+  optPolicyDefault: 'default · in order', optPolicyAnonymousOnly: 'anonymous-only · anonymous sources only (default)',
   srcPriority: 'Priority sources', srcPriorityHint: 'Source ids ranked first, in this order.', srcPriorityHelp: 'Only ready sources that fit the task language and profile; for example deepseek, exa. Empty = none. engines in the call still wins.',
   srcDisabled: 'Disabled sources', srcDisabledHint: 'Never used by planning or the default chain.', srcDisabledHelp: 'A source named in the call still runs. To opt out of the billed DeepSeek default, put deepseek here.',
   sourcesListTitle: 'Sources that need a key or an address', sourcesListHint: 'Edit sets the key reference, the key, the endpoint and the request budget; keys go to DSH Credentials and are never shown.',

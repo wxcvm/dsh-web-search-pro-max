@@ -775,12 +775,12 @@ export class SearchRouter {
     const bindings = platform ? undefined : this.bindingsOf(ids)
     const cacheKey = platform
       ? createPlatformCacheKey({ platform: platform.id, query: query || platform.url || platform.id, ...platform.url ? { url: platform.url } : {}, count, ...platform.authProfile ? { authProfile: platform.authProfile } : {}, ...platform.rulePack ? { rulePack: platform.rulePack } : {} })
-      : createSearchCacheKey({ query, engines: ids, count, multi, ...opts.exa ? { exa: opts.exa as Record<string, unknown> } : {}, ...bindings ? { browser: bindings } : {} })
+      : createSearchCacheKey({ query, engines: ids, count, multi, ...opts.skipSeam ? { skipSeam: true } : {}, ...opts.exa ? { exa: opts.exa as Record<string, unknown> } : {}, ...bindings ? { browser: bindings } : {} })
     const memoryKey = cacheKey + ':count=' + count
     const run = (signal: AbortSignal | undefined): Promise<RouterSearchResult> => this.runSearch({ opts, query, nq, ids, count, multi, cacheKey, memoryKey, ...platform ? { platform } : {} }, signal)
     if (opts.fresh) return run(opts.signal)
-    // skipSeam changes which engines can run, so it must be part of the flight identity.
-    return this.searchFlights.do(memoryKey + (opts.skipSeam ? ':skipSeam' : ''), run, opts.signal)
+    // The cache identity already includes skipSeam for both persisted results and flights.
+    return this.searchFlights.do(memoryKey, run, opts.signal)
   }
 
   /**
