@@ -28,7 +28,7 @@ const PLAIN = { content: 'PLAIN', sources: [{ url: 'https://plain.test/a', title
 function setup(over: Record<string, unknown> = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wsp-provider-route-'))
   const config = resolveConfig({
-    engines: ['seam', 'ddg'], parallelEngines: false, searchMaxResults: 8, timeoutMs: 5_000, ttlSeconds: 60, memoryCacheEntries: 16,
+    engines: ['seam', 'ddg'], evidence: { sourcePolicy: 'default' }, parallelEngines: false, searchMaxResults: 8, timeoutMs: 5_000, ttlSeconds: 60, memoryCacheEntries: 16,
     rrfConstant: 60, freshnessBoost: 0, authorityBoost: 0, freshnessDays: 30, authorityDomains: [], enableCliBackends: false,
     opencliEnabled: false, agentReachEnabled: false, registerProvider: true, providerId: 'wsp-test',
     dbPath: path.join(dir, 'store.db'), playwright: { enabled: true, snapshotDir: path.join(dir, 'shots') }, allowProxyFakeIp: false, verbose: false,

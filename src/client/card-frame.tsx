@@ -24,7 +24,9 @@ const KEYED_DEFS = SOURCE_DEFS.filter(def => def.credential)
 export function chainInputOf(snapshot: Pick<WebSearchCardState, 'fields' | 'credentials'>): ChainInput {
   const text = (field: string): string => snapshot.fields[field as keyof typeof snapshot.fields]?.text ?? ''
   const commonReady = SOURCE_DEFS.filter(def => def.common && def.credential && COMMON_SOURCE_IDS.includes(def.id) && snapshot.credentials[def.credential as keyof typeof snapshot.credentials]?.configured).map(def => def.id)
-  return { engines: parseList(text('engines')), priority: parseList(text('sources.priority')), disabled: parseList(text('sources.disabled')), commonReady, anonymousOnly: text('evidence.sourcePolicy') === 'anonymous-only' }
+  const anonymousOnly = text('evidence.sourcePolicy') === 'anonymous-only'
+  const anonymousBlocked = ['seam', ...SOURCE_DEFS.filter(def => def.tier !== 'anonymous' && (def.id !== 'exa' || snapshot.credentials.exa?.configured)).map(def => def.id)]
+  return { engines: parseList(text('engines')), priority: parseList(text('sources.priority')), disabled: parseList(text('sources.disabled')), commonReady, anonymousOnly, anonymousBlocked }
 }
 
 /** The chain a plain search would try, from the staged settings; undefined when the draft leaves nothing to try. */

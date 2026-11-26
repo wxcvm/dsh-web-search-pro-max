@@ -345,15 +345,16 @@ export class SearchRouter {
     const src = cfg.sources
     const anonymousOnly = cfg.evidence?.sourcePolicy === 'anonymous-only'
     const disabled = this.canonicalIds(src?.disabled ?? [])
+    const anonymousBlocked: string[] = []
     if (anonymousOnly) {
       const env = await this.probeEnv()
       for (const id of ids) {
         const adapter = this.registry.resolve(id)
-        if (!adapter) { disabled.push(id); continue }
+        if (!adapter) { anonymousBlocked.push(id); continue }
         try {
           const readiness = await adapter.probeLocal(env)
-          if ((readiness.costTier ?? costTierOf(adapter.descriptor)) !== 'anonymous') disabled.push(id)
-        } catch { disabled.push(id) }
+          if ((readiness.costTier ?? costTierOf(adapter.descriptor)) !== 'anonymous') anonymousBlocked.push(id)
+        } catch { anonymousBlocked.push(id) }
       }
     }
     return effectiveChain({
@@ -361,6 +362,7 @@ export class SearchRouter {
       priority: this.canonicalIds(src?.priority ?? []),
       disabled,
       anonymousOnly,
+      anonymousBlocked,
       commonReady: anonymousOnly ? [] : await this.commonReady(),
     })
   }

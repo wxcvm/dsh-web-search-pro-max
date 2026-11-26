@@ -19,6 +19,8 @@ export interface ChainInput {
   commonReady?: readonly string[]
   /** `evidence.sourcePolicy === 'anonymous-only'`: a paid common source is never added. */
   anonymousOnly?: boolean
+  /** Known non-anonymous routes, kept separate from user-disabled sources. */
+  anonymousBlocked?: readonly string[]
 }
 
 /**
@@ -28,11 +30,12 @@ export interface ChainInput {
  */
 export function effectiveChain(input: ChainInput): string[] {
   const disabled = new Set(input.disabled ?? [])
-  const kept = input.engines.filter(id => !disabled.has(id))
-  if (input.engines.length && !kept.length) throw new Error('every configured engine is disabled (sources.disabled): ' + input.engines.join(', '))
+  const blocked = new Set(input.anonymousOnly ? input.anonymousBlocked ?? [] : [])
+  const kept = input.engines.filter(id => !disabled.has(id) && !blocked.has(id))
+  if (input.engines.length && !kept.length) throw new Error('every configured engine is disabled or excluded by source policy: ' + input.engines.join(', '))
   const first = (input.priority ?? []).filter(id => kept.includes(id))
   const customised = input.engines.length !== DEFAULT_ENGINES.length || input.engines.some((id, i) => id !== DEFAULT_ENGINES[i])
-  const lead = customised || input.anonymousOnly ? [] : (input.commonReady ?? []).filter(id => !disabled.has(id) && !kept.includes(id))
+  const lead = customised || input.anonymousOnly ? [] : (input.commonReady ?? []).filter(id => !disabled.has(id) && !blocked.has(id) && !kept.includes(id))
   return [...new Set([...first, ...lead, ...kept.filter(id => !first.includes(id))])]
 }
 
@@ -71,13 +74,14 @@ export function explainChain(input: ChainInput): ChainExplanation {
   const ready = (input.commonReady ?? []).filter(id => !disabled.has(id))
   const led = chain.filter(id => !input.engines.includes(id))
   if (led.length) reasons.push({ kind: 'common', ids: led })
-  const kept = input.engines.filter(id => !disabled.has(id))
+  const blocked = new Set(input.anonymousOnly ? input.anonymousBlocked ?? [] : [])
+  const kept = input.engines.filter(id => !disabled.has(id) && !blocked.has(id))
   const first = (input.priority ?? []).filter(id => kept.includes(id))
   // Priority ids that actually changed place: those not already at the position priority gives them.
   const moved = first.filter((id, index) => kept.indexOf(id) !== index)
   if (moved.length) reasons.push({ kind: 'priority', ids: moved })
   if (input.anonymousOnly) {
-    const skipped = ready.filter(id => !input.engines.includes(id))
+    const skipped = [...new Set([...ready.filter(id => !input.engines.includes(id)), ...input.engines.filter(id => blocked.has(id) && !disabled.has(id))])]
     if (skipped.length) reasons.push({ kind: 'anonymous-only', ids: skipped })
   } else if (customised) {
     const skipped = ready.filter(id => !input.engines.includes(id))
