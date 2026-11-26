@@ -118,7 +118,7 @@ export const ANYSEARCH_DESCRIPTOR: ProviderDescriptor = {
 
 export const anySearchAdapter: ProviderAdapter = {
   descriptor: ANYSEARCH_DESCRIPTOR,
-  probeLocal: ({ deps }) => ({ available: true, installation: 'not_required', credential: (deps.anysearchApiKey?.length ?? 0) > 0 ? 'configured' : 'not_required' }),
+  probeLocal: ({ deps }) => ({ available: true, installation: 'not_required', credential: (deps.anysearchApiKey?.length ?? 0) > 0 ? 'configured' : 'not_required', costTier: deps.anysearchApiKey ? 'paid' : 'anonymous' }),
   create: deps => anySearchEngine(deps),
   compile: (task, now) => compileSince(task, ANYSEARCH_ROUTE_ID, now, { lang: true }),
 }

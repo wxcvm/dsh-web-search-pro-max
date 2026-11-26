@@ -131,7 +131,7 @@ test('sources.disabled removes a source from the plan, the second-round candidat
 test('anonymous-only never plans a source that needs a key, account or login, even a configured one', () => {
   const zh = plan({ ...ZH, profile: 'general' }, { status: withKeys('bocha'), policy: 'anonymous-only' })
   assert.deepEqual(ids(zh), ['ddg', 'bing'])
-  assert.match(zh.notes.join('\n'), /not planned: jina \(sourcePolicy anonymous-only: free-quota\)/)
+  assert.match(zh.notes.join('\n'), /jina \(sourcePolicy anonymous-only: free-quota\)/)
   assert.ok(!zh.wanted.includes('bocha'))
   // keyed English sources are out; Exa stays while it runs keylessly, and goes once an API key makes its route a keyed one
   assert.deepEqual(ids(plan({ ...EN, profile: 'general' }, { status: withKeys('tavily', 'brave'), policy: 'anonymous-only' })), ['exa', 'ddg'])

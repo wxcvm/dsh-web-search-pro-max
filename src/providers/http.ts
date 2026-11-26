@@ -20,7 +20,7 @@ import { parseRetryAfter } from './bocha.ts'
 export { parseRetryAfter }
 
 /** Polite, descriptive User-Agent with a project URL as contact (Wikimedia / OpenAlex etiquette). */
-export const PROVIDER_USER_AGENT = 'dsh-web-search-pro/0.1 (+https://github.com/anweat/dsh-web-search-pro; polite API client)'
+export const PROVIDER_USER_AGENT = 'dsh-web-search-pro-max/0.3 (+https://github.com/wxcvm/dsh-web-search-pro-max; polite API client)'
 const TIMEOUT_MS = 30_000
 const MAX_BODY_BYTES = 4 * 1024 * 1024
 

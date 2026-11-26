@@ -35,6 +35,7 @@ import { createPlatformCacheKey, createSearchCacheKey } from './cache-key.ts'
 import { allAttemptsBenign, allAttemptsEmpty, BackendRegistry, NoBackendError, type Backend, type BackendAttempt, type BackendDiagnostic } from './backend-registry.ts'
 import { ExaClient, type ExaResult } from './exa-client.ts'
 import { SingleFlight } from './singleflight.ts'
+import { mapConcurrent, SEARCH_CONCURRENCY } from './search-concurrency.ts'
 import { mergeCandidates, provenanceOf, type ProviderOutput } from './pipeline/candidates.ts'
 import { guaranteeSeats } from './pipeline/confidence.ts'
 import { fuseCandidates } from './pipeline/fusion.ts'
@@ -711,7 +712,11 @@ export class SearchRouter {
       if (disabled.has(id) || (skipSeam && id === 'seam')) return false
       const adapter = this.registry.resolve(id)
       if (!adapter) return false
-      if (cfg.evidence?.sourcePolicy === 'anonymous-only' && costTierOf(adapter.descriptor) !== 'anonymous') return false
+      if (cfg.evidence?.sourcePolicy === 'anonymous-only') {
+        if (costTierOf(adapter.descriptor) !== 'anonymous') return false
+        const deps = this.depsSync(skipSeam)
+        if ((id === 'exa' && (deps.exaApiKey || process.env.EXA_API_KEY)) || (id === 'anysearch' && deps.anysearchApiKey)) return false
+      }
       try { return this.buildSync(id, skipSeam).available() } catch { return false }
     })
   }
@@ -871,7 +876,12 @@ export class SearchRouter {
       // Every engine goes through the registry (probe, cooldown, quality gate,
       // attempts) in parallel; failures of one never cancel the others.
       const input = { query, count, signal, skipSeam: opts.skipSeam ?? false, ...opts.exa ? { options: { exa: opts.exa } } : {} }
-      const results = await Promise.allSettled(ids.map(id => this.backends.runSelected(input, { preferred: [id], ...signal ? { signal } : {} })))
+      const results = await mapConcurrent(ids, SEARCH_CONCURRENCY, async (id): Promise<PromiseSettledResult<Awaited<ReturnType<typeof this.backends.runSelected>>>> => {
+        try {
+          signal?.throwIfAborted()
+          return { status: 'fulfilled', value: await this.backends.runSelected(input, { preferred: [id], ...signal ? { signal } : {} }) }
+        } catch (reason) { return { status: 'rejected', reason } }
+      })
       if (signal?.aborted) throw signal.reason ?? new DOMException('This operation was aborted', 'AbortError')
       enginesTried.push(...ids)
       // Merge by canonical URL (every provider/rank/query contribution kept),

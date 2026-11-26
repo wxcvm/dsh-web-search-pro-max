@@ -57,7 +57,7 @@ function boot(extra: Record<string, unknown> = {}) {
   const disposers: (() => void)[] = []
   const web = { search: async () => ({ sources: [{ url: 'https://example.com/seam', title: 'Seam hit', snippet: 'native' }] }) }
   const config: any = {
-    engines: ['seam'], parallelEngines: false, searchMaxResults: 8, timeoutMs: 5_000, ttlSeconds: 60,
+    engines: ['seam'], evidence: { sourcePolicy: 'default' }, parallelEngines: false, searchMaxResults: 8, timeoutMs: 5_000, ttlSeconds: 60,
     memoryCacheEntries: 16, rrfConstant: 60, freshnessBoost: 0, authorityBoost: 0, freshnessDays: 30,
     authorityDomains: [], enableCliBackends: false, opencliEnabled: false, agentReachEnabled: false,
     registerProvider: false, providerId: 'web-search-pro', allowProxyFakeIp: false, verbose: false,
@@ -397,7 +397,7 @@ test('system prompt is one line, plus one line about dsh-browser only when it is
   try {
     assert.equal(h.sections.length, 1)
     const section = h.sections[0]
-    assert.equal(section.name, 'tool:web-search-pro')
+    assert.equal(section.name, 'tool:web-search-pro-max')
     assert.equal(typeof section.text, 'function', 'text is evaluated at assembly time')
     const without = section.text()
     assert.doesNotMatch(without, /browser_/)

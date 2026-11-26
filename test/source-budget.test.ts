@@ -47,7 +47,7 @@ function source(name: string, behaviour: Behaviour = { records: true }): Provide
 function harness(db: string, sources: object, adapters: ProviderAdapter[], engines = ['alpha', 'beta']) {
   const registry = createBuiltinRegistry()
   for (const a of adapters) registry.register(a)
-  const config = resolveConfig({ dbPath: db, engines, enableCliBackends: false, opencliEnabled: false, agentReachEnabled: false, sources } as never)
+  const config = resolveConfig({ dbPath: db, engines, enableCliBackends: false, opencliEnabled: false, agentReachEnabled: false, evidence: { sourcePolicy: 'default' }, sources } as never)
   const store = new Store(config.dbPath)
   const router = new SearchRouter({ get: () => undefined } as never, config, store, undefined, undefined, undefined, registry)
   return { config, store, router, registry, search: (query: string, over: object = {}) => router.search({ query, count: 3, fresh: true, multi: false, signal: undefined, ...over }) }

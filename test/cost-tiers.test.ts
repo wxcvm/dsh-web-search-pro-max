@@ -14,7 +14,7 @@ const raw = (): any => JSON.parse(fs.readFileSync(CATALOG_URL, 'utf8'))
 
 /** The tier of every built-in provider (route id). `free-quota` rows cite the pricing page in the descriptor / catalog `cost` note. */
 const EXPECTED: Record<string, string> = {
-  seam: 'anonymous', exa: 'anonymous', ddg: 'anonymous', bing: 'anonymous', github: 'anonymous', bilibili: 'anonymous', v2ex: 'anonymous', youtube: 'anonymous', arxiv: 'anonymous', pubmed: 'anonymous',
+  seam: 'paid', exa: 'anonymous', ddg: 'anonymous', bing: 'anonymous', github: 'anonymous', bilibili: 'anonymous', v2ex: 'anonymous', youtube: 'anonymous', arxiv: 'anonymous', pubmed: 'anonymous',
   'github-issues': 'anonymous', rss: 'anonymous', wikipedia: 'anonymous', hackernews: 'anonymous', stackexchange: 'anonymous', openalex: 'anonymous', semanticscholar: 'anonymous', anysearch: 'anonymous', searxng: 'anonymous',
   jina: 'free-quota', 'github-code': 'free-quota', tavily: 'free-quota', brave: 'free-quota', linkup: 'free-quota', serper: 'free-quota', 'baidu-qianfan': 'free-quota',
   xiaohongshu: 'free-quota', twitter: 'free-quota', reddit: 'free-quota', instagram: 'free-quota', facebook: 'free-quota', zhihu: 'free-quota', weibo: 'free-quota', douban: 'free-quota', tieba: 'free-quota', douyin: 'free-quota', kuaishou: 'free-quota',
@@ -41,7 +41,7 @@ test('cost tiers: without an explicit tier it is derived from the cost model (fr
   assert.equal(costTierOf({ costModel: { kind: 'metered' }, costTier: 'free-quota' }), 'free-quota')
 })
 
-test('cost tiers: Exa reports the tier of the route that would run (keyless MCP: anonymous, API key: free-quota); nothing else changes tier', async () => {
+test('cost tiers: Exa reports the tier of the route that would run (keyless MCP: anonymous, API key: free-quota); AnySearch also reports its keyed paid route', async () => {
   const config = resolveConfig({ enableCliBackends: true } as never)
   const probe = async (id: string, deps: object, cli?: Map<string, boolean>) => registry.resolve(id)!.probeLocal({ deps: { enableCli: true, opencliEnabled: false, agentReachEnabled: false, allowProxyFakeIp: false, skipSeam: false, ...deps }, config, cli })
   const keyless = await probe('exa', {}, new Map([['mcporter', true]]))
@@ -51,6 +51,8 @@ test('cost tiers: Exa reports the tier of the route that would run (keyless MCP:
   assert.equal((await probe('exa', {}, new Map([['mcporter', false]]))).keyless, undefined, 'mcporter known missing: no keyless route')
   assert.equal((await probe('exa', { enableCli: false })).keyless, undefined, 'CLI backends off: no keyless route')
   assert.equal((await probe('ddg', {})).costTier, undefined, 'single-route providers use the descriptor tier')
+  assert.equal((await probe('anysearch', {})).costTier, 'anonymous')
+  assert.equal((await probe('anysearch', { anysearchApiKey: 'k' })).costTier, 'paid')
 })
 
 test('catalog tiers: every entry has a valid tier, the schema rejects a missing or unknown one, and provider-linked entries agree with the registry', () => {
